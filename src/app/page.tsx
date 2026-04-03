@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { Header } from '@/components/Header'
 import { TodayHighlight } from '@/components/TodayHighlight'
 import { MatchSchedule } from '@/components/MatchSchedule'
@@ -20,20 +19,10 @@ export default function Home() {
         <Standings />
         <Providers />
       </main>
-      <footer className="border-t border-black/5 bg-white py-10">
+      <footer className="border-t border-black/5 bg-white py-8">
         <div className="mx-auto max-w-5xl px-4 text-center">
-          <p className="text-sm font-medium text-muted mb-1">
-            eredivisie.tv
-          </p>
-          <p className="text-xs text-muted-light mb-6">
-            Niet officieel gelieerd aan de Eredivisie
-          </p>
-          <div className="flex items-center justify-center gap-2 text-xs text-muted-light">
-            <span>Een project van</span>
-            <a href="https://www.brandfirm.nl" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70">
-              <Image src="https://www.brandfirm.nl/svg/logo.svg" alt="Brandfirm" width={100} height={24} />
-            </a>
-          </div>
+          <p className="text-sm font-medium text-muted mb-1">eredivisie.tv</p>
+          <p className="text-xs text-muted-light">Niet officieel gelieerd aan de Eredivisie</p>
         </div>
       </footer>
     </>
