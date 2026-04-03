@@ -27,7 +27,7 @@ export function TodayHighlight() {
 
   return (
     <section id="vandaag" className="mx-auto w-full max-w-5xl px-4 py-8">
-      <h2 className="mb-4 text-xl font-bold text-white">
+      <h2 className="mb-4 text-xl font-bold text-foreground">
         {title}
       </h2>
       <div className="flex flex-col gap-3">

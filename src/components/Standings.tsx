@@ -12,11 +12,11 @@ function positionClass(pos: number): string {
 export function Standings() {
   return (
     <section id="stand" className="mx-auto w-full max-w-5xl px-4 py-8">
-      <h2 className="mb-6 text-xl font-bold text-white">Eredivisie Stand</h2>
-      <div className="overflow-x-auto rounded-xl bg-[#141414]">
+      <h2 className="mb-6 text-xl font-bold text-foreground">Eredivisie Stand</h2>
+      <div className="overflow-x-auto rounded-xl bg-card">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-zinc-500">
+            <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted">
               <th className="px-4 py-3 w-8">#</th>
               <th className="px-4 py-3">Club</th>
               <th className="px-4 py-3 text-center">W</th>
@@ -30,28 +30,28 @@ export function Standings() {
             {standings.map((entry) => (
               <tr
                 key={entry.club.id}
-                className={`border-b border-white/5 transition-colors hover:bg-[#1a1a1a] ${positionClass(entry.position)}`}
+                className={`border-b border-border transition-colors hover:bg-card-hover ${positionClass(entry.position)}`}
               >
-                <td className="px-4 py-2.5 text-zinc-400">{entry.position}</td>
+                <td className="px-4 py-2.5 text-muted">{entry.position}</td>
                 <td className="px-4 py-2.5">
                   <div className="flex items-center gap-2">
                     <Image src={entry.club.logo} alt={entry.club.name} width={20} height={20} className="rounded-full" />
-                    <span className="font-medium text-white">{entry.club.name}</span>
+                    <span className="font-medium text-foreground">{entry.club.name}</span>
                   </div>
                 </td>
-                <td className="px-4 py-2.5 text-center text-zinc-300">{entry.won}</td>
-                <td className="px-4 py-2.5 text-center text-zinc-300">{entry.drawn}</td>
-                <td className="px-4 py-2.5 text-center text-zinc-300">{entry.lost}</td>
-                <td className="px-4 py-2.5 text-center text-zinc-300 hidden sm:table-cell">
+                <td className="px-4 py-2.5 text-center text-foreground/80">{entry.won}</td>
+                <td className="px-4 py-2.5 text-center text-foreground/80">{entry.drawn}</td>
+                <td className="px-4 py-2.5 text-center text-foreground/80">{entry.lost}</td>
+                <td className="px-4 py-2.5 text-center text-foreground/80 hidden sm:table-cell">
                   {entry.goalsFor - entry.goalsAgainst > 0 ? '+' : ''}{entry.goalsFor - entry.goalsAgainst}
                 </td>
-                <td className="px-4 py-2.5 text-center font-bold text-white">{entry.points}</td>
+                <td className="px-4 py-2.5 text-center font-bold text-foreground">{entry.points}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div className="mt-3 flex flex-wrap gap-4 text-xs text-zinc-500">
+      <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted">
         <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-500" /> Champions League</span>
         <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500" /> Europa League</span>
         <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500" /> Conference League</span>

@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      { hostname: 'tmssl.akamaized.net' },
+      { hostname: 'www.brandfirm.nl' },
+    ],
+  },
 };
 
 export default nextConfig;

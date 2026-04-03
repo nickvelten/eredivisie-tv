@@ -22,17 +22,17 @@ export function MatchSchedule() {
         <button
           onClick={() => setWeekIndex((i) => Math.max(0, i - 1))}
           disabled={weekIndex === 0}
-          className="rounded-lg bg-[#141414] px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:bg-[#1a1a1a] hover:text-white disabled:opacity-30"
+          className="rounded-lg bg-card px-3 py-1.5 text-sm text-muted transition-colors hover:bg-card-hover hover:text-foreground disabled:opacity-30"
         >
           ← Vorige
         </button>
-        <h2 className="text-xl font-bold text-white">
+        <h2 className="text-xl font-bold text-foreground">
           Speelronde {week.number}
         </h2>
         <button
           onClick={() => setWeekIndex((i) => Math.min(matchweeks.length - 1, i + 1))}
           disabled={weekIndex === matchweeks.length - 1}
-          className="rounded-lg bg-[#141414] px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:bg-[#1a1a1a] hover:text-white disabled:opacity-30"
+          className="rounded-lg bg-card px-3 py-1.5 text-sm text-muted transition-colors hover:bg-card-hover hover:text-foreground disabled:opacity-30"
         >
           Volgende →
         </button>
@@ -41,7 +41,7 @@ export function MatchSchedule() {
       <div className="flex flex-col gap-6">
         {Array.from(grouped.entries()).map(([dateKey, matches]) => (
           <div key={dateKey}>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[#e01e36]">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-accent">
               {formatDutchDate(matches[0].date)}
             </h3>
             <div className="flex flex-col gap-2">
