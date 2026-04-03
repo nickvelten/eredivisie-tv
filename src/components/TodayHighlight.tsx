@@ -9,27 +9,35 @@ export function TodayHighlight() {
 
   let displayMatches: Match[]
   let title: string
+  let subtitle: string | null = null
 
   if (todayMatches.length > 0) {
     displayMatches = todayMatches
     title = 'Vandaag op TV'
+    subtitle = `${todayMatches.length} wedstrijd${todayMatches.length > 1 ? 'en' : ''} vandaag`
   } else {
     const upcoming = allMatches
       .filter((m) => m.status === 'scheduled')
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     displayMatches = upcoming.slice(0, 3)
     title = displayMatches.length > 0
-      ? `Eerstvolgende: ${formatDutchDate(displayMatches[0].date)}`
+      ? `Eerstvolgende wedstrijden`
       : 'Geen wedstrijden gepland'
+    if (displayMatches.length > 0) {
+      subtitle = formatDutchDate(displayMatches[0].date)
+    }
   }
 
   if (displayMatches.length === 0) return null
 
   return (
-    <section id="vandaag" className="mx-auto w-full max-w-5xl px-4 py-8">
-      <h2 className="mb-4 text-xl font-bold text-foreground">
-        {title}
-      </h2>
+    <section id="vandaag" className="mx-auto w-full max-w-5xl px-4 py-10">
+      <div className="mb-5 flex items-end gap-3">
+        <h2 className="text-2xl font-extrabold text-foreground">{title}</h2>
+        {subtitle && (
+          <span className="mb-0.5 rounded-full bg-accent-light px-3 py-0.5 text-xs font-semibold text-accent">{subtitle}</span>
+        )}
+      </div>
       <div className="flex flex-col gap-3">
         {displayMatches.map((match) => (
           <MatchCard key={match.id} match={match} />

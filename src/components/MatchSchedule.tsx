@@ -17,34 +17,39 @@ export function MatchSchedule() {
   const grouped = groupMatchesByDate(week.matches)
 
   return (
-    <section id="programma" className="mx-auto w-full max-w-5xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
+    <section id="programma" className="mx-auto w-full max-w-5xl px-4 py-10">
+      <div className="mb-8 flex items-center justify-between">
         <button
           onClick={() => setWeekIndex((i) => Math.max(0, i - 1))}
           disabled={weekIndex === 0}
-          className="rounded-lg bg-card px-3 py-1.5 text-sm text-muted transition-colors hover:bg-card-hover hover:text-foreground disabled:opacity-30"
+          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-muted shadow-sm ring-1 ring-black/5 transition-all hover:shadow-md hover:text-foreground disabled:opacity-30 disabled:hover:shadow-sm"
         >
           ← Vorige
         </button>
-        <h2 className="text-xl font-bold text-foreground">
-          Speelronde {week.number}
-        </h2>
+        <div className="text-center">
+          <h2 className="text-2xl font-extrabold text-foreground">Speelronde {week.number}</h2>
+          <p className="text-xs text-muted-light">van {matchweeks.length} speelrondes</p>
+        </div>
         <button
           onClick={() => setWeekIndex((i) => Math.min(matchweeks.length - 1, i + 1))}
           disabled={weekIndex === matchweeks.length - 1}
-          className="rounded-lg bg-card px-3 py-1.5 text-sm text-muted transition-colors hover:bg-card-hover hover:text-foreground disabled:opacity-30"
+          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-muted shadow-sm ring-1 ring-black/5 transition-all hover:shadow-md hover:text-foreground disabled:opacity-30 disabled:hover:shadow-sm"
         >
           Volgende →
         </button>
       </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-8">
         {Array.from(grouped.entries()).map(([dateKey, matches]) => (
           <div key={dateKey}>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-accent">
-              {formatDutchDate(matches[0].date)}
-            </h3>
-            <div className="flex flex-col gap-2">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="h-px flex-1 bg-accent/20" />
+              <h3 className="text-xs font-bold uppercase tracking-widest text-accent">
+                {formatDutchDate(matches[0].date)}
+              </h3>
+              <div className="h-px flex-1 bg-accent/20" />
+            </div>
+            <div className="flex flex-col gap-2.5">
               {matches.map((match) => (
                 <MatchCard key={match.id} match={match} />
               ))}
