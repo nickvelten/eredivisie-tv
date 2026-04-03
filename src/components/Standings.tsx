@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { standings } from '@/data/standings'
+import { StandingEntry } from '@/data/types'
 
 function positionStyle(pos: number): string {
   if (pos === 1) return 'border-l-3 border-yellow-400 bg-yellow-50/50'
@@ -9,7 +9,16 @@ function positionStyle(pos: number): string {
   return 'border-l-3 border-transparent'
 }
 
-export function Standings() {
+export function Standings({ standings }: { standings: StandingEntry[] }) {
+  if (standings.length === 0) {
+    return (
+      <section id="stand" className="mx-auto w-full max-w-5xl px-4 py-10">
+        <h2 className="mb-4 text-2xl font-extrabold text-foreground">Eredivisie Stand</h2>
+        <p className="text-sm text-muted">Stand niet beschikbaar.</p>
+      </section>
+    )
+  }
+
   return (
     <section id="stand" className="mx-auto w-full max-w-5xl px-4 py-10">
       <h2 className="mb-6 text-2xl font-extrabold text-foreground">Eredivisie Stand</h2>
@@ -43,7 +52,8 @@ export function Standings() {
                 <td className="px-4 py-3 text-center text-muted">{entry.drawn}</td>
                 <td className="px-4 py-3 text-center text-muted">{entry.lost}</td>
                 <td className="px-4 py-3 text-center text-muted hidden sm:table-cell">
-                  {entry.goalsFor - entry.goalsAgainst > 0 ? '+' : ''}{entry.goalsFor - entry.goalsAgainst}
+                  {entry.goalsFor - entry.goalsAgainst > 0 ? '+' : ''}
+                  {entry.goalsFor - entry.goalsAgainst}
                 </td>
                 <td className="px-4 py-3 text-center text-base font-extrabold text-foreground">{entry.points}</td>
               </tr>
@@ -52,10 +62,18 @@ export function Standings() {
         </table>
       </div>
       <div className="mt-4 flex flex-wrap gap-5 text-xs font-medium text-muted">
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-yellow-400" /> Champions League</span>
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-blue-400" /> Europa League</span>
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /> Conference League</span>
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-red-400" /> Degradatie</span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" /> Champions League
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-blue-400" /> Europa League
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /> Conference League
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-400" /> Degradatie
+        </span>
       </div>
     </section>
   )

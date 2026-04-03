@@ -1,11 +1,9 @@
-import { matchweeks } from '@/data/matches'
 import { isToday, formatDutchDate } from '@/lib/utils'
 import { MatchCard } from './MatchCard'
 import { Match } from '@/data/types'
 
-export function TodayHighlight() {
-  const allMatches = matchweeks.flatMap((mw) => mw.matches)
-  const todayMatches = allMatches.filter((m) => isToday(m.date))
+export function TodayHighlight({ matches }: { matches: Match[] }) {
+  const todayMatches = matches.filter((m) => isToday(m.date))
 
   let displayMatches: Match[]
   let title: string
@@ -16,13 +14,11 @@ export function TodayHighlight() {
     title = 'Vandaag op TV'
     subtitle = `${todayMatches.length} wedstrijd${todayMatches.length > 1 ? 'en' : ''} vandaag`
   } else {
-    const upcoming = allMatches
+    const upcoming = matches
       .filter((m) => m.status === 'scheduled')
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     displayMatches = upcoming.slice(0, 3)
-    title = displayMatches.length > 0
-      ? `Eerstvolgende wedstrijden`
-      : 'Geen wedstrijden gepland'
+    title = displayMatches.length > 0 ? 'Eerstvolgende wedstrijden' : 'Geen wedstrijden gepland'
     if (displayMatches.length > 0) {
       subtitle = formatDutchDate(displayMatches[0].date)
     }
@@ -35,7 +31,9 @@ export function TodayHighlight() {
       <div className="mb-5 flex items-end gap-3">
         <h2 className="text-2xl font-extrabold text-foreground">{title}</h2>
         {subtitle && (
-          <span className="mb-0.5 rounded-full bg-accent-light px-3 py-0.5 text-xs font-semibold text-accent">{subtitle}</span>
+          <span className="mb-0.5 rounded-full bg-accent-light px-3 py-0.5 text-xs font-semibold text-accent">
+            {subtitle}
+          </span>
         )}
       </div>
       <div className="flex flex-col gap-3">

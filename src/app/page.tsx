@@ -3,20 +3,67 @@ import { TodayHighlight } from '@/components/TodayHighlight'
 import { MatchSchedule } from '@/components/MatchSchedule'
 import { Standings } from '@/components/Standings'
 import { Providers } from '@/components/Providers'
+import { fetchEredivisieData } from '@/lib/espn'
 
-export default function Home() {
+export const revalidate = 3600 // ISR: revalidate every hour
+
+export default async function Home() {
+  const { matchweeks, standings, allMatches } = await fetchEredivisieData()
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Eredivisie.tv',
+    url: 'https://eredivisie.tv',
+    description:
+      'Bekijk alle Eredivisie wedstrijden en ontdek waar je ze live kunt zien op TV en online. Compleet programma, uitslagen, stand en TV gids.',
+    inLanguage: 'nl',
+    publisher: {
+      '@type': 'Organization',
+      name: 'Eredivisie.tv',
+      url: 'https://eredivisie.tv',
+    },
+  }
+
+  // Structured data for upcoming matches
+  const upcomingMatches = allMatches
+    .filter((m) => m.status === 'scheduled')
+    .slice(0, 10)
+    .map((m) => ({
+      '@context': 'https://schema.org',
+      '@type': 'SportsEvent',
+      name: `${m.homeTeam.name} vs ${m.awayTeam.name}`,
+      startDate: m.date,
+      homeTeam: { '@type': 'SportsTeam', name: m.homeTeam.name },
+      awayTeam: { '@type': 'SportsTeam', name: m.awayTeam.name },
+      location: { '@type': 'Place', name: 'Eredivisie' },
+      eventStatus: 'https://schema.org/EventScheduled',
+      eventAttendanceMode: 'https://schema.org/MixedEventAttendanceMode',
+      offers: {
+        '@type': 'Offer',
+        name: 'Kijk live op ESPN',
+        url: 'https://www.espn.nl',
+      },
+    }))
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      {upcomingMatches.map((match, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(match) }}
+        />
+      ))}
       <Header />
-      <div className="mx-auto max-w-5xl px-4 py-3">
-        <div className="rounded-lg bg-amber-50 px-4 py-2.5 text-center text-xs font-medium text-amber-700 ring-1 ring-amber-200">
-          Deze site toont momenteel voorbeelddata — de site is nog in ontwikkeling.
-        </div>
-      </div>
       <main className="flex-1">
-        <TodayHighlight />
-        <MatchSchedule />
-        <Standings />
+        <TodayHighlight matches={allMatches} />
+        <MatchSchedule matchweeks={matchweeks} />
+        <Standings standings={standings} />
         <Providers />
       </main>
       <footer className="border-t border-black/5 bg-white py-8">

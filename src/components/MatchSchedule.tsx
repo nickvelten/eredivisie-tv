@@ -1,17 +1,26 @@
 'use client'
 
 import { useState } from 'react'
-import { matchweeks } from '@/data/matches'
+import { Matchweek } from '@/data/types'
 import { formatDutchDate, groupMatchesByDate } from '@/lib/utils'
 import { MatchCard } from './MatchCard'
 
-export function MatchSchedule() {
+export function MatchSchedule({ matchweeks }: { matchweeks: Matchweek[] }) {
   const [weekIndex, setWeekIndex] = useState(() => {
     const idx = matchweeks.findIndex((mw) =>
       mw.matches.some((m) => m.status === 'scheduled' || m.status === 'live')
     )
     return idx >= 0 ? idx : matchweeks.length - 1
   })
+
+  if (matchweeks.length === 0) {
+    return (
+      <section id="programma" className="mx-auto w-full max-w-5xl px-4 py-10">
+        <h2 className="mb-4 text-2xl font-extrabold text-foreground">Programma</h2>
+        <p className="text-sm text-muted">Geen wedstrijden beschikbaar.</p>
+      </section>
+    )
+  }
 
   const week = matchweeks[weekIndex]
   const grouped = groupMatchesByDate(week.matches)
@@ -28,7 +37,7 @@ export function MatchSchedule() {
         </button>
         <div className="text-center">
           <h2 className="text-2xl font-extrabold text-foreground">Speelronde {week.number}</h2>
-          <p className="text-xs text-muted-light">van {matchweeks.length} speelrondes</p>
+          <p className="text-xs text-muted-light">van {matchweeks.length > 0 ? matchweeks[matchweeks.length - 1].number : 0} speelrondes</p>
         </div>
         <button
           onClick={() => setWeekIndex((i) => Math.min(matchweeks.length - 1, i + 1))}

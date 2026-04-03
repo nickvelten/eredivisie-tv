@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { hostname: 'tmssl.akamaized.net' },
       { hostname: 'www.brandfirm.nl' },
+      { hostname: 'a.espncdn.com' },
     ],
   },
 };
