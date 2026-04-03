@@ -11,6 +11,12 @@ export type Broadcast = {
   url?: string
 }
 
+export type Odds = {
+  home: number // decimal odds, e.g. 1.53
+  draw: number
+  away: number
+}
+
 export type Match = {
   id: string
   homeTeam: Club
@@ -19,6 +25,7 @@ export type Match = {
   status: 'scheduled' | 'live' | 'finished'
   score?: { home: number; away: number }
   broadcasts: Broadcast[]
+  odds?: Odds
 }
 
 export type Matchweek = {

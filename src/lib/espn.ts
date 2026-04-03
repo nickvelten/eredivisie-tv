@@ -1,4 +1,4 @@
-import { Match, Matchweek, StandingEntry } from '@/data/types'
+import { Match, Matchweek, StandingEntry, Odds } from '@/data/types'
 
 const ESPN_API = 'https://site.api.espn.com/apis'
 const LEAGUE = 'ned.1'
@@ -20,6 +20,15 @@ interface ESPNCompetitor {
   team: ESPNTeam
 }
 
+interface ESPNOdds {
+  provider: { id: string; name: string }
+  moneyline?: {
+    home?: { close?: { odds: string } }
+    away?: { close?: { odds: string } }
+    draw?: { close?: { odds: string } }
+  }
+}
+
 interface ESPNEvent {
   id: string
   date: string
@@ -33,6 +42,7 @@ interface ESPNEvent {
         completed: boolean
       }
     }
+    odds?: ESPNOdds[]
   }>
 }
 
@@ -100,6 +110,31 @@ function findCurrentWeekIndex(weeks: { start: Date; end: Date }[], today: Date):
 
 // --- Data transformers ---
 
+// Convert American odds to European decimal odds
+function americanToDecimal(american: string): number {
+  const num = parseInt(american)
+  if (isNaN(num)) return 0
+  if (num > 0) return Math.round(((num / 100) + 1) * 100) / 100
+  return Math.round(((100 / Math.abs(num)) + 1) * 100) / 100
+}
+
+function extractOdds(comp: ESPNEvent['competitions'][0]): Odds | undefined {
+  const oddsData = comp.odds?.[0]
+  if (!oddsData?.moneyline) return undefined
+
+  const home = oddsData.moneyline.home?.close?.odds
+  const draw = oddsData.moneyline.draw?.close?.odds
+  const away = oddsData.moneyline.away?.close?.odds
+
+  if (!home || !draw || !away) return undefined
+
+  return {
+    home: americanToDecimal(home),
+    draw: americanToDecimal(draw),
+    away: americanToDecimal(away),
+  }
+}
+
 function getTeamLogo(team: ESPNTeam): string {
   if (team.logo) return team.logo
   if (team.logos?.[0]?.href) return team.logos[0].href
@@ -144,6 +179,7 @@ function transformEvent(event: ESPNEvent): Match {
       { name: 'ESPN', type: 'tv' },
       { name: 'ESPN.nl', type: 'online', url: 'https://www.espn.nl' },
     ],
+    odds: status === 'scheduled' ? extractOdds(comp) : undefined,
   }
 }
 

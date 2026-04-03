@@ -3,6 +3,8 @@ import { Match } from '@/data/types'
 import { formatTime } from '@/lib/utils'
 import { BroadcastBadge } from './BroadcastBadge'
 
+const UNIBET_URL = 'https://www.unibet.nl/betting/sports/filter/football/netherlands/eredivisie'
+
 export function MatchCard({ match }: { match: Match }) {
   return (
     <div className="rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md">
@@ -16,17 +18,26 @@ export function MatchCard({ match }: { match: Match }) {
         </div>
         <div>
           {match.status === 'finished' && match.score ? (
-            <span className="rounded-md bg-foreground/5 px-2.5 py-1 text-xs font-bold text-foreground sm:text-sm">{match.score.home} - {match.score.away}</span>
+            <span className="rounded-md bg-foreground/5 px-2.5 py-1 text-xs font-bold text-foreground sm:text-sm">
+              {match.score.home} - {match.score.away}
+            </span>
           ) : match.status === 'live' ? (
             <div className="flex items-center gap-2">
               <span className="animate-pulse rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Live</span>
-              {match.score && <span className="text-xs font-bold text-foreground sm:text-sm">{match.score.home} - {match.score.away}</span>}
+              {match.score && (
+                <span className="text-xs font-bold text-foreground sm:text-sm">
+                  {match.score.home} - {match.score.away}
+                </span>
+              )}
             </div>
           ) : (
-            <span className="rounded-md bg-accent-light px-2.5 py-1 text-xs font-bold text-accent sm:text-sm">{formatTime(match.date)}</span>
+            <span className="rounded-md bg-accent-light px-2.5 py-1 text-xs font-bold text-accent sm:text-sm">
+              {formatTime(match.date)}
+            </span>
           )}
         </div>
       </div>
+
       <div className="flex flex-wrap items-center gap-2 border-t border-black/5 px-4 py-2 sm:px-5 sm:py-2.5">
         {match.broadcasts.length > 0 && (
           <>
@@ -36,14 +47,45 @@ export function MatchCard({ match }: { match: Match }) {
             ))}
           </>
         )}
-        <a
-          href="https://www.unibet.nl"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-3 py-1 text-[10px] font-bold text-white shadow-sm transition-all hover:shadow-md hover:brightness-110 sm:text-[11px]"
-        >
-          Zet in bij Unibet →
-        </a>
+
+        {/* Unibet odds CTA */}
+        {match.odds && match.status === 'scheduled' ? (
+          <a
+            href={UNIBET_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto inline-flex items-center gap-2 rounded-full bg-[#147B45] px-3 py-1 text-[10px] font-bold text-white shadow-sm transition-all hover:bg-[#00531D] hover:shadow-md sm:text-[11px]"
+          >
+            <span className="flex items-center gap-1.5 border-r border-white/20 pr-2">
+              <span className="text-[#FFE71F]">1</span>
+              <span>{match.odds.home.toFixed(2)}</span>
+            </span>
+            <span className="flex items-center gap-1.5 border-r border-white/20 pr-2">
+              <span className="text-[#FFE71F]">X</span>
+              <span>{match.odds.draw.toFixed(2)}</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-[#FFE71F]">2</span>
+              <span>{match.odds.away.toFixed(2)}</span>
+            </span>
+            <span className="ml-1 rounded bg-[#FFE71F] px-1.5 py-0.5 text-[9px] font-extrabold text-[#00531D] sm:text-[10px]">
+              Unibet
+            </span>
+          </a>
+        ) : (
+          <a
+            href={UNIBET_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-[#147B45] px-3 py-1 text-[10px] font-bold text-white shadow-sm transition-all hover:bg-[#00531D] hover:shadow-md sm:text-[11px]"
+          >
+            Zet in bij{' '}
+            <span className="rounded bg-[#FFE71F] px-1.5 py-0.5 text-[9px] font-extrabold text-[#00531D] sm:text-[10px]">
+              Unibet
+            </span>
+            →
+          </a>
+        )}
       </div>
     </div>
   )
