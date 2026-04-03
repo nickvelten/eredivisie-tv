@@ -6,16 +6,17 @@ const styles = {
   app: 'bg-purple-50 text-purple-700 ring-purple-200',
 }
 
-const icons = {
-  tv: '📺',
-  online: '💻',
-  app: '📱',
-}
-
 export function BroadcastBadge({ broadcast }: { broadcast: Broadcast }) {
+  const isTv = broadcast.type === 'tv'
+
   const inner = (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${styles[broadcast.type]}`}>
-      {icons[broadcast.type]} {broadcast.name}
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 ring-1 ${styles[broadcast.type]} ${
+        isTv ? 'text-xs font-bold sm:text-[13px]' : 'text-[11px] font-semibold'
+      }`}
+    >
+      {isTv && <span className="text-[10px]">📺</span>}
+      {broadcast.name}
     </span>
   )
 

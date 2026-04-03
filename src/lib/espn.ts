@@ -211,6 +211,65 @@ function transformStandings(data: ESPNStandingsResponse): StandingEntry[] {
     .map((entry, i) => ({ ...entry, position: i + 1 }))
 }
 
+// --- ESPN channel assignment heuristic ---
+// ESPN NL assigns channels by match importance per timeslot:
+// ESPN 1 = top match, ESPN 2/3/4 = others
+
+const CHANNEL_NAMES = ['ESPN 1', 'ESPN 2', 'ESPN 3', 'ESPN 4']
+
+function assignChannels(matches: Match[], standings: StandingEntry[]): Match[] {
+  // Build a ranking map: team ID → standing position (lower = better)
+  const rankMap = new Map<string, number>()
+  for (const entry of standings) {
+    rankMap.set(entry.club.id, entry.position)
+  }
+
+  // "Importance" score: sum of both teams' positions (lower = bigger match)
+  function matchImportance(m: Match): number {
+    const homeRank = rankMap.get(m.homeTeam.id) ?? 18
+    const awayRank = rankMap.get(m.awayTeam.id) ?? 18
+    return homeRank + awayRank
+  }
+
+  // Group matches into timeslots (within 30 minutes of each other)
+  const timeslots: Match[][] = []
+  const sorted = [...matches].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+  for (const match of sorted) {
+    const matchTime = new Date(match.date).getTime()
+    const lastSlot = timeslots[timeslots.length - 1]
+    if (lastSlot) {
+      const slotTime = new Date(lastSlot[0].date).getTime()
+      if (Math.abs(matchTime - slotTime) <= 30 * 60 * 1000) {
+        lastSlot.push(match)
+        continue
+      }
+    }
+    timeslots.push([match])
+  }
+
+  // For each timeslot, rank by importance and assign channels
+  const channelMap = new Map<string, string>()
+  for (const slot of timeslots) {
+    const ranked = [...slot].sort((a, b) => matchImportance(a) - matchImportance(b))
+    ranked.forEach((m, i) => {
+      channelMap.set(m.id, CHANNEL_NAMES[Math.min(i, CHANNEL_NAMES.length - 1)])
+    })
+  }
+
+  // Apply channel assignments to broadcasts
+  return matches.map((m) => {
+    const channel = channelMap.get(m.id) ?? 'ESPN'
+    return {
+      ...m,
+      broadcasts: [
+        { name: channel, type: 'tv' as const },
+        { name: 'ESPN.nl', type: 'online' as const, url: 'https://www.espn.nl' },
+      ],
+    }
+  })
+}
+
 // --- Main fetch function ---
 
 export async function fetchEredivisieData(): Promise<{
@@ -274,7 +333,16 @@ export async function fetchEredivisieData(): Promise<{
     const standRes = await fetch(standingsUrl, { next: { revalidate: REVALIDATE } })
     const standings = standRes.ok ? transformStandings(await standRes.json()) : []
 
-    return { matchweeks, standings, allMatches }
+    // 6. Assign ESPN channels based on match importance per timeslot
+    const enrichedMatches = assignChannels(allMatches, standings)
+
+    // Rebuild matchweeks with channel-enriched matches
+    const enrichedMatchweeks = matchweeks.map((mw) => ({
+      ...mw,
+      matches: mw.matches.map((m) => enrichedMatches.find((em) => em.id === m.id) ?? m),
+    }))
+
+    return { matchweeks: enrichedMatchweeks, standings, allMatches: enrichedMatches }
   } catch (error) {
     console.error('Failed to fetch Eredivisie data:', error)
     return { matchweeks: [], standings: [], allMatches: [] }
