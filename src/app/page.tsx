@@ -1,17 +1,32 @@
+// src/app/page.tsx
+import { Header } from '@/components/Header'
+import { TodayHighlight } from '@/components/TodayHighlight'
+import { MatchSchedule } from '@/components/MatchSchedule'
+import { Standings } from '@/components/Standings'
+import { Providers } from '@/components/Providers'
+
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-black font-sans">
-      <main className="flex flex-col items-center gap-8 text-center px-6">
-        <div className="flex flex-col items-center gap-2">
-          <h1 className="text-5xl font-bold tracking-tight text-white sm:text-7xl">
-            eredivisie<span className="text-red-600">.tv</span>
-          </h1>
-          <div className="h-1 w-24 bg-red-600 rounded-full" />
+    <>
+      <Header />
+      <main className="flex-1">
+        <TodayHighlight />
+        <div className="mx-auto max-w-5xl px-4">
+          <hr className="border-white/5" />
         </div>
-        <p className="text-xl text-zinc-400 max-w-md">
-          Binnenkort beschikbaar
-        </p>
+        <MatchSchedule />
+        <div className="mx-auto max-w-5xl px-4">
+          <hr className="border-white/5" />
+        </div>
+        <Standings />
+        <div className="mx-auto max-w-5xl px-4">
+          <hr className="border-white/5" />
+        </div>
+        <Providers />
       </main>
-    </div>
-  );
+      <footer className="border-t border-white/5 py-6 text-center text-xs text-zinc-500">
+        eredivisie.tv — Niet officieel gelieerd aan de Eredivisie
+      </footer>
+    </>
+  )
 }

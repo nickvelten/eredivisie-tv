@@ -14,7 +14,7 @@ export function formatTime(dateStr: string): string {
   return date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
 }
 
-export function groupMatchesByDate(matches: { date: string }[]): Map<string, typeof matches> {
+export function groupMatchesByDate<T extends { date: string }>(matches: T[]): Map<string, T[]> {
   const groups = new Map<string, typeof matches>()
   for (const match of matches) {
     const key = new Date(match.date).toISOString().split('T')[0]
