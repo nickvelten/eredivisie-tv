@@ -1,4 +1,4 @@
-import { isToday, formatDutchDate } from '@/lib/utils'
+import { isToday, formatDutchDate, isSameDay } from '@/lib/utils'
 import { MatchCard } from './MatchCard'
 import { Match } from '@/data/types'
 
@@ -17,7 +17,13 @@ export function TodayHighlight({ matches }: { matches: Match[] }) {
     const upcoming = matches
       .filter((m) => m.status === 'scheduled')
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    displayMatches = upcoming.slice(0, 3)
+    // Show ALL matches of the next match day, not just 3
+    if (upcoming.length > 0) {
+      const nextDay = upcoming[0].date
+      displayMatches = upcoming.filter((m) => isSameDay(m.date, nextDay))
+    } else {
+      displayMatches = []
+    }
     title = displayMatches.length > 0 ? 'Eerstvolgende wedstrijden' : 'Geen wedstrijden gepland'
     if (displayMatches.length > 0) {
       subtitle = formatDutchDate(displayMatches[0].date)

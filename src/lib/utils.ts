@@ -41,6 +41,11 @@ export function groupMatchesByDate<T extends { date: string }>(matches: T[]): Ma
   return groups
 }
 
+export function isSameDay(dateStr1: string, dateStr2: string): boolean {
+  const fmt = new Intl.DateTimeFormat('sv-SE', { timeZone: TZ })
+  return fmt.format(new Date(dateStr1)) === fmt.format(new Date(dateStr2))
+}
+
 export function isToday(dateStr: string): boolean {
   const matchDate = new Intl.DateTimeFormat('sv-SE', { timeZone: TZ }).format(new Date(dateStr))
   const today = new Intl.DateTimeFormat('sv-SE', { timeZone: TZ }).format(new Date())
