@@ -5,7 +5,8 @@ function positionStyle(pos: number): string {
   if (pos === 1) return 'border-l-3 border-yellow-400 bg-yellow-50/50'
   if (pos <= 3) return 'border-l-3 border-blue-400'
   if (pos === 4) return 'border-l-3 border-emerald-400'
-  if (pos >= 17) return 'border-l-3 border-red-400 bg-red-50/30'
+  if (pos >= 16 && pos <= 17) return 'border-l-3 border-orange-400 bg-orange-50/30'
+  if (pos === 18) return 'border-l-3 border-red-400 bg-red-50/30'
   return 'border-l-3 border-transparent'
 }
 
@@ -28,9 +29,12 @@ export function Standings({ standings }: { standings: StandingEntry[] }) {
             <tr className="border-b-2 border-accent/10 text-left text-[11px] font-bold uppercase tracking-wider text-muted">
               <th className="px-4 py-3.5 w-8">#</th>
               <th className="px-4 py-3.5">Club</th>
+              <th className="px-4 py-3.5 text-center">GS</th>
               <th className="px-4 py-3.5 text-center">W</th>
               <th className="px-4 py-3.5 text-center">G</th>
               <th className="px-4 py-3.5 text-center">V</th>
+              <th className="px-4 py-3.5 text-center hidden sm:table-cell">DV</th>
+              <th className="px-4 py-3.5 text-center hidden sm:table-cell">DT</th>
               <th className="px-4 py-3.5 text-center hidden sm:table-cell">+/-</th>
               <th className="px-4 py-3.5 text-center">Pt</th>
             </tr>
@@ -48,9 +52,12 @@ export function Standings({ standings }: { standings: StandingEntry[] }) {
                     <span className="font-semibold text-foreground">{entry.club.name}</span>
                   </div>
                 </td>
+                <td className="px-4 py-3 text-center text-muted">{entry.played}</td>
                 <td className="px-4 py-3 text-center text-muted">{entry.won}</td>
                 <td className="px-4 py-3 text-center text-muted">{entry.drawn}</td>
                 <td className="px-4 py-3 text-center text-muted">{entry.lost}</td>
+                <td className="px-4 py-3 text-center text-muted hidden sm:table-cell">{entry.goalsFor}</td>
+                <td className="px-4 py-3 text-center text-muted hidden sm:table-cell">{entry.goalsAgainst}</td>
                 <td className="px-4 py-3 text-center text-muted hidden sm:table-cell">
                   {entry.goalsFor - entry.goalsAgainst > 0 ? '+' : ''}
                   {entry.goalsFor - entry.goalsAgainst}
@@ -70,6 +77,9 @@ export function Standings({ standings }: { standings: StandingEntry[] }) {
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /> Conference League
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-orange-400" /> Nacompetitie
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-red-400" /> Degradatie
