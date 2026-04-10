@@ -1,9 +1,9 @@
 import { Broadcast } from '@/data/types'
 
 const styles = {
-  tv: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-  online: 'bg-blue-50 text-blue-700 ring-blue-200',
-  app: 'bg-purple-50 text-purple-700 ring-purple-200',
+  tv: 'bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:text-emerald-400',
+  online: 'bg-blue-500/10 text-blue-700 ring-blue-500/30 dark:text-blue-400',
+  app: 'bg-purple-500/10 text-purple-700 ring-purple-500/30 dark:text-purple-400',
 }
 
 export function BroadcastBadge({ broadcast }: { broadcast: Broadcast }) {

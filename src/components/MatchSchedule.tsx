@@ -31,7 +31,7 @@ export function MatchSchedule({ matchweeks }: { matchweeks: Matchweek[] }) {
         <button
           onClick={() => setWeekIndex((i) => Math.max(0, i - 1))}
           disabled={weekIndex === 0}
-          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-muted shadow-sm ring-1 ring-black/5 transition-all hover:shadow-md hover:text-foreground disabled:opacity-30 disabled:hover:shadow-sm"
+          className="rounded-lg bg-card px-4 py-2 text-sm font-medium text-muted shadow-sm ring-1 ring-border transition-all hover:shadow-md hover:text-foreground disabled:opacity-30 disabled:hover:shadow-sm"
         >
           ← Vorige
         </button>
@@ -42,7 +42,7 @@ export function MatchSchedule({ matchweeks }: { matchweeks: Matchweek[] }) {
         <button
           onClick={() => setWeekIndex((i) => Math.min(matchweeks.length - 1, i + 1))}
           disabled={weekIndex === matchweeks.length - 1}
-          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-muted shadow-sm ring-1 ring-black/5 transition-all hover:shadow-md hover:text-foreground disabled:opacity-30 disabled:hover:shadow-sm"
+          className="rounded-lg bg-card px-4 py-2 text-sm font-medium text-muted shadow-sm ring-1 ring-border transition-all hover:shadow-md hover:text-foreground disabled:opacity-30 disabled:hover:shadow-sm"
         >
           Volgende →
         </button>

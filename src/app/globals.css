@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f8f9fa;
   --foreground: #1a1a2e;
@@ -10,6 +12,18 @@
   --muted-light: #94a3b8;
   --accent: #e01e36;
   --accent-light: #fee2e5;
+}
+
+.dark {
+  --background: #0f1117;
+  --foreground: #e4e4e7;
+  --card: #1a1b23;
+  --card-hover: #22232d;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --muted: #9ca3af;
+  --muted-light: #6b7280;
+  --accent: #ef4444;
+  --accent-light: rgba(239, 68, 68, 0.15);
 }
 
 @theme inline {

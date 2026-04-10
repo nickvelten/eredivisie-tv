@@ -1,4 +1,4 @@
-import { Match, Matchweek, StandingEntry, Odds } from '@/data/types'
+import { Match, Matchweek, StandingEntry, Odds, TopScorer, TopAssister, FormResult } from '@/data/types'
 
 const ESPN_API = 'https://site.api.espn.com/apis'
 const LEAGUE = 'ned.1'
@@ -52,6 +52,28 @@ interface ESPNScoreboardResponse {
     calendar: string[]
   }>
   events: ESPNEvent[]
+}
+
+interface ESPNLeaderAthlete {
+  id: string
+  displayName: string
+  flag?: { href: string; alt: string }
+}
+
+interface ESPNLeaderEntry {
+  displayValue: string
+  value: number
+  athlete: ESPNLeaderAthlete
+}
+
+interface ESPNLeadersResponse {
+  leaders: {
+    categories: Array<{
+      name: string
+      displayName: string
+      leaders: ESPNLeaderEntry[]
+    }>
+  }
 }
 
 interface ESPNStandingsResponse {
@@ -211,6 +233,57 @@ function transformStandings(data: ESPNStandingsResponse): StandingEntry[] {
     .map((entry, i) => ({ ...entry, position: i + 1 }))
 }
 
+// --- Leaders transform ---
+
+function transformLeaders(data: ESPNLeadersResponse): { topScorers: TopScorer[]; topAssisters: TopAssister[] } {
+  const categories = data.leaders?.categories ?? []
+
+  const goalsCategory = categories.find((c) => c.name === 'goalsLeaders') ?? categories.find((c) => c.name === 'goals')
+  const assistsCategory = categories.find((c) => c.name === 'assistsLeaders') ?? categories.find((c) => c.name === 'assists')
+
+  const topScorers: TopScorer[] = (goalsCategory?.leaders ?? []).slice(0, 15).map((l, i) => {
+    const matchesMatch = l.displayValue.match(/Matches:\s*(\d+)/)
+    return {
+      position: i + 1,
+      name: l.athlete.displayName,
+      goals: Math.round(l.value),
+      matches: matchesMatch ? parseInt(matchesMatch[1]) : 0,
+      flag: l.athlete.flag?.href,
+    }
+  })
+
+  const topAssisters: TopAssister[] = (assistsCategory?.leaders ?? []).slice(0, 15).map((l, i) => {
+    const matchesMatch = l.displayValue.match(/Matches:\s*(\d+)/)
+    return {
+      position: i + 1,
+      name: l.athlete.displayName,
+      assists: Math.round(l.value),
+      matches: matchesMatch ? parseInt(matchesMatch[1]) : 0,
+      flag: l.athlete.flag?.href,
+    }
+  })
+
+  return { topScorers, topAssisters }
+}
+
+// --- Form calculation ---
+
+function calculateForm(teamId: string, matches: Match[], count = 5): FormResult[] {
+  const finished = matches
+    .filter((m) => m.status === 'finished' && m.score && (m.homeTeam.id === teamId || m.awayTeam.id === teamId))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, count)
+
+  return finished.map((m) => {
+    const isHome = m.homeTeam.id === teamId
+    const goalsFor = isHome ? m.score!.home : m.score!.away
+    const goalsAgainst = isHome ? m.score!.away : m.score!.home
+    if (goalsFor > goalsAgainst) return 'W'
+    if (goalsFor < goalsAgainst) return 'L'
+    return 'D'
+  }).reverse() // oldest first, so reading left-to-right is chronological
+}
+
 // --- ESPN channel assignment heuristic ---
 // ESPN NL assigns channels by match importance per timeslot:
 // ESPN 1 = top match, ESPN 2/3/4 = others
@@ -276,6 +349,8 @@ export async function fetchEredivisieData(): Promise<{
   matchweeks: Matchweek[]
   standings: StandingEntry[]
   allMatches: Match[]
+  topScorers: TopScorer[]
+  topAssisters: TopAssister[]
 }> {
   try {
     // 1. Fetch scoreboard to get calendar
@@ -287,10 +362,10 @@ export async function fetchEredivisieData(): Promise<{
     const calendar = calData.leagues[0]?.calendar ?? []
     const weeks = groupCalendarIntoWeeks(calendar)
 
-    // 2. Find current week and determine fetch range
+    // 2. Find current week and determine fetch range (wider range for results)
     const today = new Date()
     const currentIdx = findCurrentWeekIndex(weeks, today)
-    const startIdx = Math.max(0, currentIdx - 2)
+    const startIdx = Math.max(0, currentIdx - 4)
     const endIdx = Math.min(weeks.length - 1, currentIdx + 2)
 
     // Extend date range by 1 day on each side for safety
@@ -328,10 +403,31 @@ export async function fetchEredivisieData(): Promise<{
       }
     }
 
-    // 5. Fetch standings
+    // 5. Fetch standings, leaders, and recent results (for form) in parallel
     const standingsUrl = `${ESPN_API}/v2/sports/soccer/${LEAGUE}/standings`
-    const standRes = await fetch(standingsUrl, { next: { revalidate: REVALIDATE } })
+    const leadersUrl = `${ESPN_API}/site/v3/sports/soccer/${LEAGUE}/leaders?season=2025&seasontype=1`
+
+    // Fetch last ~8 weeks of matches for form calculation
+    const formStart = new Date()
+    formStart.setDate(formStart.getDate() - 60)
+    const formUrl = `${ESPN_API}/site/v2/sports/soccer/${LEAGUE}/scoreboard?dates=${formatDateParam(formStart)}-${formatDateParam(new Date())}&limit=200`
+
+    const [standRes, leadersRes, formRes] = await Promise.all([
+      fetch(standingsUrl, { next: { revalidate: REVALIDATE } }),
+      fetch(leadersUrl, { next: { revalidate: REVALIDATE } }),
+      fetch(formUrl, { next: { revalidate: REVALIDATE } }),
+    ])
+
+    const formMatches = formRes.ok ? (await formRes.json() as ESPNScoreboardResponse).events.map(transformEvent) : allMatches
+
     const standings = standRes.ok ? transformStandings(await standRes.json()) : []
+
+    // Enrich standings with form data
+    for (const entry of standings) {
+      entry.form = calculateForm(entry.club.id, formMatches)
+    }
+
+    const { topScorers, topAssisters } = leadersRes.ok ? transformLeaders(await leadersRes.json()) : { topScorers: [], topAssisters: [] }
 
     // 6. Assign ESPN channels based on match importance per timeslot
     const enrichedMatches = assignChannels(allMatches, standings)
@@ -342,9 +438,9 @@ export async function fetchEredivisieData(): Promise<{
       matches: mw.matches.map((m) => enrichedMatches.find((em) => em.id === m.id) ?? m),
     }))
 
-    return { matchweeks: enrichedMatchweeks, standings, allMatches: enrichedMatches }
+    return { matchweeks: enrichedMatchweeks, standings, allMatches: enrichedMatches, topScorers, topAssisters }
   } catch (error) {
     console.error('Failed to fetch Eredivisie data:', error)
-    return { matchweeks: [], standings: [], allMatches: [] }
+    return { matchweeks: [], standings: [], allMatches: [], topScorers: [], topAssisters: [] }
   }
 }

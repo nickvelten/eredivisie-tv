@@ -7,7 +7,7 @@ const UNIBET_URL = 'https://www.unibet.nl/betting/sports/filter/football/netherl
 
 export function MatchCard({ match }: { match: Match }) {
   return (
-    <div className="rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md">
+    <div className="rounded-xl bg-card shadow-sm ring-1 ring-border transition-shadow hover:shadow-md">
       <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-5 sm:py-3.5">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <Image src={match.homeTeam.logo} alt={match.homeTeam.name} width={30} height={30} className="h-5 w-5 shrink-0 sm:h-[30px] sm:w-[30px]" />
@@ -38,7 +38,7 @@ export function MatchCard({ match }: { match: Match }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 border-t border-black/5 px-4 py-2 sm:px-5 sm:py-2.5">
+      <div className="flex items-center gap-2 border-t border-border px-4 py-2 sm:px-5 sm:py-2.5">
         {match.broadcasts.length > 0 && (
           <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="text-[10px] font-medium uppercase tracking-wider text-muted-light sm:text-[11px]">Kijk op:</span>

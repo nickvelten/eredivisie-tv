@@ -3,7 +3,8 @@ import { Provider } from './types'
 export const providers: Provider[] = [
   {
     name: 'Ziggo Sport',
-    logo: '',
+    logo: '/providers/ziggo.svg',
+    brandColor: '#FF6600',
     price: '€14,95/mnd',
     description: 'ESPN-kanalen inbegrepen bij Ziggo Sport pakket',
     url: 'https://www.ziggo.nl/televisie/sport',
@@ -11,7 +12,8 @@ export const providers: Provider[] = [
   },
   {
     name: 'KPN',
-    logo: '',
+    logo: '/providers/kpn.svg',
+    brandColor: '#009900',
     price: '€15,95/mnd',
     description: 'ESPN ontvangen via KPN iTV',
     url: 'https://www.kpn.com/televisie/espn.htm',
@@ -19,7 +21,8 @@ export const providers: Provider[] = [
   },
   {
     name: 'Odido',
-    logo: '',
+    logo: '/providers/odido.svg',
+    brandColor: '#5A00FF',
     price: '€14,95/mnd',
     description: 'ESPN via Odido TV pakket',
     url: 'https://www.odido.nl/televisie/espn',
@@ -27,7 +30,8 @@ export const providers: Provider[] = [
   },
   {
     name: 'Canal Digitaal',
-    logo: '',
+    logo: '/providers/canal-digitaal.svg',
+    brandColor: '#003DA5',
     price: '€15,95/mnd',
     description: 'ESPN via Canal Digitaal',
     url: 'https://www.canaldigitaal.nl/televisie/espn',
@@ -35,7 +39,8 @@ export const providers: Provider[] = [
   },
   {
     name: 'ESPN.nl',
-    logo: '',
+    logo: '/providers/espn.svg',
+    brandColor: '#CC0000',
     price: '€16,99/mnd',
     description: 'Alle wedstrijden live streamen via ESPN.nl',
     url: 'https://www.espn.nl',
@@ -43,7 +48,8 @@ export const providers: Provider[] = [
   },
   {
     name: 'Ziggo GO',
-    logo: '',
+    logo: '/providers/ziggo-go.svg',
+    brandColor: '#FF6600',
     price: 'Bij abonnement',
     description: 'Gratis voor Ziggo klanten met Sport pakket',
     url: 'https://www.ziggogo.tv',

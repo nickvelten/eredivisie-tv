@@ -33,6 +33,8 @@ export type Matchweek = {
   matches: Match[]
 }
 
+export type FormResult = 'W' | 'D' | 'L'
+
 export type StandingEntry = {
   position: number
   club: Club
@@ -43,11 +45,29 @@ export type StandingEntry = {
   goalsFor: number
   goalsAgainst: number
   points: number
+  form?: FormResult[]
+}
+
+export type TopScorer = {
+  position: number
+  name: string
+  goals: number
+  matches: number
+  flag?: string
+}
+
+export type TopAssister = {
+  position: number
+  name: string
+  assists: number
+  matches: number
+  flag?: string
 }
 
 export type Provider = {
   name: string
   logo: string
+  brandColor: string
   price: string
   description: string
   url: string
