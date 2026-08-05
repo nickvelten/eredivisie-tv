@@ -1,8 +1,5 @@
 const TZ = 'Europe/Amsterdam'
 
-const DUTCH_DAYS = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag']
-const DUTCH_MONTHS = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
-
 export function formatDutchDate(dateStr: string): string {
   const date = new Date(dateStr)
   // Use Intl to get the correct day/date in Dutch timezone

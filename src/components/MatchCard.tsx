@@ -1,13 +1,24 @@
+'use client'
+
 import Image from 'next/image'
 import { Match } from '@/data/types'
 import { formatTime } from '@/lib/utils'
+import { useFavoriteClub } from '@/lib/favorite-club'
 import { BroadcastBadge } from './BroadcastBadge'
 
 const UNIBET_URL = 'https://www.unibet.nl/betting/sports/filter/football/netherlands/eredivisie'
 
 export function MatchCard({ match }: { match: Match }) {
+  const { favoriteId } = useFavoriteClub()
+  const isFavorite =
+    favoriteId !== null && (match.homeTeam.id === favoriteId || match.awayTeam.id === favoriteId)
+
   return (
-    <div className="rounded-xl bg-card shadow-sm ring-1 ring-border transition-shadow hover:shadow-md">
+    <div
+      className={`rounded-xl bg-card shadow-sm transition-shadow hover:shadow-md ${
+        isFavorite ? 'ring-2 ring-accent/60' : 'ring-1 ring-border'
+      }`}
+    >
       <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-5 sm:py-3.5">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <Image src={match.homeTeam.logo} alt={match.homeTeam.name} width={30} height={30} className="h-5 w-5 shrink-0 sm:h-[30px] sm:w-[30px]" />

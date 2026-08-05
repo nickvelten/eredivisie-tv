@@ -6,11 +6,12 @@ export function ThemeToggle() {
   const [dark, setDark] = useState(false)
 
   useEffect(() => {
-    const stored = localStorage.getItem('theme')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const isDark = stored === 'dark' || (!stored && prefersDark)
-    setDark(isDark)
-    document.documentElement.classList.toggle('dark', isDark)
+    // The inline script in layout.tsx has already applied the correct class
+    // before hydration; sync the icon state from the DOM after mount.
+    const t = setTimeout(() => {
+      setDark(document.documentElement.classList.contains('dark'))
+    }, 0)
+    return () => clearTimeout(t)
   }, [])
 
   function toggle() {

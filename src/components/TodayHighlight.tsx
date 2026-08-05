@@ -1,5 +1,6 @@
 import { isToday, formatDutchDate, isSameDay } from '@/lib/utils'
 import { MatchCard } from './MatchCard'
+import { KickoffCountdown } from './KickoffCountdown'
 import { Match } from '@/data/types'
 
 export function TodayHighlight({ matches }: { matches: Match[] }) {
@@ -32,15 +33,22 @@ export function TodayHighlight({ matches }: { matches: Match[] }) {
 
   if (displayMatches.length === 0) return null
 
+  // Countdown to the first upcoming kickoff among the displayed matches
+  const nextKickoff = displayMatches
+    .filter((m) => m.status === 'scheduled')
+    .map((m) => m.date)
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0]
+
   return (
     <section id="vandaag" className="mx-auto w-full max-w-5xl px-4 py-10">
-      <div className="mb-5 flex items-end gap-3">
+      <div className="mb-5 flex flex-wrap items-end gap-3">
         <h2 className="text-2xl font-extrabold text-foreground">{title}</h2>
         {subtitle && (
           <span className="mb-0.5 rounded-full bg-accent-light px-3 py-0.5 text-xs font-semibold text-accent">
             {subtitle}
           </span>
         )}
+        {nextKickoff && <KickoffCountdown date={nextKickoff} />}
       </div>
       <div className="flex flex-col gap-3">
         {displayMatches.map((match) => (

@@ -64,6 +64,11 @@ export type TopAssister = {
   flag?: string
 }
 
+export type SeasonInfo = {
+  label: string // e.g. "2026/27"
+  isCurrent: boolean // false when showing previous-season data as fallback
+}
+
 export type Provider = {
   name: string
   logo: string

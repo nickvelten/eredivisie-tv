@@ -1,4 +1,4 @@
-import { Match, Matchweek, StandingEntry, Odds, TopScorer, TopAssister, FormResult } from '@/data/types'
+import { Match, Matchweek, StandingEntry, Odds, TopScorer, TopAssister, FormResult, SeasonInfo } from '@/data/types'
 
 const ESPN_API = 'https://site.api.espn.com/apis'
 const LEAGUE = 'ned.1'
@@ -50,6 +50,7 @@ interface ESPNScoreboardResponse {
   leagues: Array<{
     id: string
     calendar: string[]
+    season?: { year: number; displayName?: string }
   }>
   events: ESPNEvent[]
 }
@@ -266,6 +267,26 @@ function transformLeaders(data: ESPNLeadersResponse): { topScorers: TopScorer[];
   return { topScorers, topAssisters }
 }
 
+// --- Season helpers ---
+
+function seasonLabel(year: number): string {
+  return `${year}/${String(year + 1).slice(2)}`
+}
+
+async function fetchLeadersForSeason(year: number): Promise<{ topScorers: TopScorer[]; topAssisters: TopAssister[] }> {
+  const url = `${ESPN_API}/site/v3/sports/soccer/${LEAGUE}/leaders?season=${year}&seasontype=1`
+  const res = await fetch(url, { next: { revalidate: REVALIDATE } })
+  if (!res.ok) return { topScorers: [], topAssisters: [] }
+  return transformLeaders(await res.json())
+}
+
+async function fetchStandingsForSeason(year: number): Promise<StandingEntry[]> {
+  const url = `${ESPN_API}/v2/sports/soccer/${LEAGUE}/standings?season=${year}`
+  const res = await fetch(url, { next: { revalidate: REVALIDATE } })
+  if (!res.ok) return []
+  return transformStandings(await res.json())
+}
+
 // --- Form calculation ---
 
 function calculateForm(teamId: string, matches: Match[], count = 5): FormResult[] {
@@ -351,6 +372,8 @@ export async function fetchEredivisieData(): Promise<{
   allMatches: Match[]
   topScorers: TopScorer[]
   topAssisters: TopAssister[]
+  standingsSeason: SeasonInfo | null
+  leadersSeason: SeasonInfo | null
 }> {
   try {
     // 1. Fetch scoreboard to get calendar
@@ -361,6 +384,9 @@ export async function fetchEredivisieData(): Promise<{
 
     const calendar = calData.leagues[0]?.calendar ?? []
     const weeks = groupCalendarIntoWeeks(calendar)
+
+    // Current season year from ESPN (e.g. 2026 for the 2026/27 season)
+    const seasonYear = calData.leagues[0]?.season?.year ?? new Date().getFullYear()
 
     // 2. Find current week and determine fetch range (wider range for results)
     const today = new Date()
@@ -403,31 +429,50 @@ export async function fetchEredivisieData(): Promise<{
       }
     }
 
-    // 5. Fetch standings, leaders, and recent results (for form) in parallel
-    const standingsUrl = `${ESPN_API}/v2/sports/soccer/${LEAGUE}/standings`
-    const leadersUrl = `${ESPN_API}/site/v3/sports/soccer/${LEAGUE}/leaders?season=2025&seasontype=1`
-
-    // Fetch last ~8 weeks of matches for form calculation
+    // 5. Fetch standings, leaders, and recent results (for form) in parallel.
+    // Leaders and standings use the current season; early in a new season, when
+    // no matches have been played yet, fall back to the previous season so the
+    // page never shows an empty list or an all-zero table.
     const formStart = new Date()
     formStart.setDate(formStart.getDate() - 60)
     const formUrl = `${ESPN_API}/site/v2/sports/soccer/${LEAGUE}/scoreboard?dates=${formatDateParam(formStart)}-${formatDateParam(new Date())}&limit=200`
 
-    const [standRes, leadersRes, formRes] = await Promise.all([
-      fetch(standingsUrl, { next: { revalidate: REVALIDATE } }),
-      fetch(leadersUrl, { next: { revalidate: REVALIDATE } }),
+    const [currentStandings, currentLeaders, formRes] = await Promise.all([
+      fetchStandingsForSeason(seasonYear),
+      fetchLeadersForSeason(seasonYear),
       fetch(formUrl, { next: { revalidate: REVALIDATE } }),
     ])
 
     const formMatches = formRes.ok ? (await formRes.json() as ESPNScoreboardResponse).events.map(transformEvent) : allMatches
 
-    const standings = standRes.ok ? transformStandings(await standRes.json()) : []
-
-    // Enrich standings with form data
-    for (const entry of standings) {
-      entry.form = calculateForm(entry.club.id, formMatches)
+    let standings = currentStandings
+    let standingsSeason: SeasonInfo | null = standings.length > 0 ? { label: seasonLabel(seasonYear), isCurrent: true } : null
+    const seasonNotStarted = standings.length > 0 && standings.every((s) => s.played === 0)
+    if (standings.length === 0 || seasonNotStarted) {
+      const previous = await fetchStandingsForSeason(seasonYear - 1)
+      if (previous.length > 0) {
+        standings = previous
+        standingsSeason = { label: seasonLabel(seasonYear - 1), isCurrent: false }
+      }
     }
 
-    const { topScorers, topAssisters } = leadersRes.ok ? transformLeaders(await leadersRes.json()) : { topScorers: [], topAssisters: [] }
+    let { topScorers, topAssisters } = currentLeaders
+    let leadersSeason: SeasonInfo | null = topScorers.length > 0 ? { label: seasonLabel(seasonYear), isCurrent: true } : null
+    if (topScorers.length === 0) {
+      const previous = await fetchLeadersForSeason(seasonYear - 1)
+      if (previous.topScorers.length > 0) {
+        topScorers = previous.topScorers
+        topAssisters = previous.topAssisters
+        leadersSeason = { label: seasonLabel(seasonYear - 1), isCurrent: false }
+      }
+    }
+
+    // Only show current-season form on a current-season standings table
+    if (standingsSeason?.isCurrent) {
+      for (const entry of standings) {
+        entry.form = calculateForm(entry.club.id, formMatches)
+      }
+    }
 
     // 6. Assign ESPN channels based on match importance per timeslot
     const enrichedMatches = assignChannels(allMatches, standings)
@@ -438,9 +483,9 @@ export async function fetchEredivisieData(): Promise<{
       matches: mw.matches.map((m) => enrichedMatches.find((em) => em.id === m.id) ?? m),
     }))
 
-    return { matchweeks: enrichedMatchweeks, standings, allMatches: enrichedMatches, topScorers, topAssisters }
+    return { matchweeks: enrichedMatchweeks, standings, allMatches: enrichedMatches, topScorers, topAssisters, standingsSeason, leadersSeason }
   } catch (error) {
     console.error('Failed to fetch Eredivisie data:', error)
-    return { matchweeks: [], standings: [], allMatches: [], topScorers: [], topAssisters: [] }
+    return { matchweeks: [], standings: [], allMatches: [], topScorers: [], topAssisters: [], standingsSeason: null, leadersSeason: null }
   }
 }

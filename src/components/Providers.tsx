@@ -19,7 +19,9 @@ export function Providers() {
           >
             <div>
               <div className="mb-3 flex items-center gap-3">
-                <Image src={provider.logo} alt={provider.name} width={80} height={27} className="h-7 w-auto rounded" />
+                <span className="flex h-10 w-[88px] shrink-0 items-center justify-center rounded-lg bg-white p-1.5 ring-1 ring-border">
+                  <Image src={provider.logo} alt={provider.name} width={80} height={28} className="max-h-7 w-auto max-w-full" />
+                </span>
                 <h3 className="text-base font-bold text-foreground">{provider.name}</h3>
               </div>
               <p className="text-sm text-muted">{provider.description}</p>

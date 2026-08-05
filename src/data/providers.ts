@@ -7,7 +7,7 @@ export const providers: Provider[] = [
     brandColor: '#FF6600',
     price: '€14,95/mnd',
     description: 'ESPN-kanalen inbegrepen bij Ziggo Sport pakket',
-    url: 'https://www.ziggo.nl/televisie/sport',
+    url: 'https://www.ziggo.nl/televisie/ziggo-sport',
     channels: ['ESPN 1', 'ESPN 2', 'ESPN 3', 'ESPN 4'],
   },
   {
@@ -16,7 +16,7 @@ export const providers: Provider[] = [
     brandColor: '#009900',
     price: '€15,95/mnd',
     description: 'ESPN ontvangen via KPN iTV',
-    url: 'https://www.kpn.com/televisie/espn.htm',
+    url: 'https://www.kpn.com/televisie',
     channels: ['ESPN 1', 'ESPN 2', 'ESPN 3', 'ESPN 4'],
   },
   {
@@ -25,7 +25,7 @@ export const providers: Provider[] = [
     brandColor: '#5A00FF',
     price: '€14,95/mnd',
     description: 'ESPN via Odido TV pakket',
-    url: 'https://www.odido.nl/televisie/espn',
+    url: 'https://www.odido.nl/tv',
     channels: ['ESPN 1', 'ESPN 2', 'ESPN 3'],
   },
   {
@@ -34,7 +34,7 @@ export const providers: Provider[] = [
     brandColor: '#003DA5',
     price: '€15,95/mnd',
     description: 'ESPN via Canal Digitaal',
-    url: 'https://www.canaldigitaal.nl/televisie/espn',
+    url: 'https://www.canaldigitaal.nl/zenders',
     channels: ['ESPN 1', 'ESPN 2', 'ESPN 3'],
   },
   {

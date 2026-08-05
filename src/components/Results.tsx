@@ -4,8 +4,10 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { Matchweek } from '@/data/types'
 import { formatDutchDate, groupMatchesByDate } from '@/lib/utils'
+import { useFavoriteClub } from '@/lib/favorite-club'
 
 export function Results({ matchweeks }: { matchweeks: Matchweek[] }) {
+  const { favoriteId } = useFavoriteClub()
   // Filter to only matchweeks that have finished matches
   const finishedWeeks = matchweeks
     .map((mw) => ({
@@ -58,7 +60,12 @@ export function Results({ matchweeks }: { matchweeks: Matchweek[] }) {
               {matches.map((match) => (
                 <div
                   key={match.id}
-                  className="flex items-center rounded-xl bg-card px-4 py-3 shadow-sm ring-1 ring-border sm:px-5"
+                  className={`flex items-center rounded-xl bg-card px-4 py-3 shadow-sm sm:px-5 ${
+                    favoriteId !== null &&
+                    (match.homeTeam.id === favoriteId || match.awayTeam.id === favoriteId)
+                      ? 'ring-2 ring-accent/60'
+                      : 'ring-1 ring-border'
+                  }`}
                 >
                   <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
                     <span className="truncate text-xs font-bold text-foreground sm:text-sm">
