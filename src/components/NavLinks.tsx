@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 export type NavItem = { label: string; href: string }
 
-const HEADER_OFFSET = 140 // sticky header height plus a little breathing room
+const HEADER_OFFSET = 130 // sticky header height plus a little breathing room
 
 function useActiveSection(ids: string[]): string | null {
   const [active, setActive] = useState<string | null>(null)
@@ -41,26 +41,20 @@ function useActiveSection(ids: string[]): string | null {
   return active
 }
 
-export function NavLinks({ items, variant }: { items: NavItem[]; variant: 'desktop' | 'mobile' }) {
+export function NavLinks({ items }: { items: NavItem[] }) {
   const ids = useMemo(() => items.map((i) => i.href.replace('#', '')), [items])
   const active = useActiveSection(ids)
   const navRef = useRef<HTMLElement>(null)
 
-  // Keep the active pill visible in the horizontally scrolling mobile nav
+  // Keep the active pill visible when the nav scrolls horizontally (mobile)
   useEffect(() => {
-    if (variant !== 'mobile' || !active) return
+    if (!active) return
     const link = navRef.current?.querySelector<HTMLAnchorElement>(`a[href="#${active}"]`)
     link?.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' })
-  }, [active, variant])
-
-  const base =
-    variant === 'desktop'
-      ? 'rounded-lg px-4 py-2.5 text-sm font-medium transition-colors'
-      : 'shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors'
-  const navClass = variant === 'desktop' ? 'flex gap-1' : 'flex flex-1 gap-1 overflow-x-auto px-2 py-1.5'
+  }, [active])
 
   return (
-    <nav ref={navRef} className={navClass} aria-label="Secties">
+    <nav ref={navRef} className="flex flex-1 gap-1 overflow-x-auto py-1.5" aria-label="Secties">
       {items.map((item) => {
         const isActive = item.href === `#${active}`
         return (
@@ -68,7 +62,7 @@ export function NavLinks({ items, variant }: { items: NavItem[]; variant: 'deskt
             key={item.href}
             href={item.href}
             aria-current={isActive ? 'true' : undefined}
-            className={`${base} ${
+            className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-colors sm:px-4 ${
               isActive
                 ? 'bg-accent-light font-semibold text-accent'
                 : 'text-muted hover:bg-accent-light hover:text-accent'

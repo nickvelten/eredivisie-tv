@@ -1,16 +1,20 @@
-import { Match, Matchweek, StandingEntry, Odds, TopScorer, TopAssister, FormResult, SeasonInfo } from '@/data/types'
+import { Match, MatchEvent, Matchweek, StandingEntry, Odds, TopScorer, TopAssister, FormResult, SeasonInfo, EredivisieData, Club } from '@/data/types'
 import { formatDateRange } from '@/lib/utils'
 
 const ESPN_API = 'https://site.api.espn.com/apis'
 const LEAGUE = 'ned.1'
-const REVALIDATE = 3600 // 1 hour
+const REVALIDATE = 3600 // standings and leaders: 1 hour
+const REVALIDATE_LIVE = 300 // current and upcoming months: 5 minutes, keeps live scores fresh
+const REVALIDATE_PAST = 86400 // months fully in the past: 1 day
 
 // --- ESPN API response types ---
 
 interface ESPNTeam {
   id: string
   displayName: string
+  shortDisplayName?: string
   abbreviation: string
+  color?: string
   logo?: string
   logos?: Array<{ href: string }>
 }
@@ -30,6 +34,18 @@ interface ESPNOdds {
   }
 }
 
+interface ESPNDetail {
+  type: { id: string; text: string }
+  clock?: { displayValue: string }
+  team?: { id: string }
+  scoringPlay?: boolean
+  redCard?: boolean
+  yellowCard?: boolean
+  penaltyKick?: boolean
+  ownGoal?: boolean
+  athletesInvolved?: Array<{ displayName: string }>
+}
+
 interface ESPNEvent {
   id: string
   date: string
@@ -37,13 +53,16 @@ interface ESPNEvent {
   competitions: Array<{
     competitors: ESPNCompetitor[]
     status: {
+      displayClock?: string
       type: {
         name: string
         state: string
         completed: boolean
       }
     }
+    venue?: { fullName?: string; address?: { city?: string } }
     odds?: ESPNOdds[]
+    details?: ESPNDetail[]
   }>
 }
 
@@ -119,8 +138,9 @@ function monthsBetween(from: Date, to: Date): string[] {
 
 async function fetchScoreboardMonth(month: string): Promise<ESPNEvent[]> {
   const url = `${ESPN_API}/site/v2/sports/soccer/${LEAGUE}/scoreboard?dates=${month}&limit=200`
+  const isPast = month < monthParam(new Date())
   try {
-    const res = await fetch(url, { next: { revalidate: REVALIDATE } })
+    const res = await fetch(url, { next: { revalidate: isPast ? REVALIDATE_PAST : REVALIDATE_LIVE } })
     if (!res.ok) {
       console.error(`ESPN scoreboard ${month} failed: ${res.status}`)
       return []
@@ -149,7 +169,11 @@ async function fetchEventsBetween(from: Date, to: Date): Promise<ESPNEvent[]> {
 // --- Match day grouping ---
 // ESPN carries no round numbers for soccer and its calendar only lists a
 // subset of dates, so group matches into "speelrondes" by clustering
-// consecutive match days (Fri/Sat/Sun weekends, Tue/Wed midweeks).
+// consecutive match days (Fri/Sat/Sun weekends, Tue/Wed midweeks). A cluster
+// with a full programme counts as a round; smaller clusters are rescheduled
+// catch-up matches and do not advance the round counter.
+
+const FULL_ROUND_MIN_MATCHES = 5
 
 function groupIntoMatchweeks(matches: Match[]): Matchweek[] {
   const sorted = [...matches].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -169,11 +193,40 @@ function groupIntoMatchweeks(matches: Match[]): Matchweek[] {
     groups.push([match])
   }
 
-  return groups.map((group, i) => ({
-    number: i + 1,
-    label: formatDateRange(group[0].date, group[group.length - 1].date),
-    matches: group,
-  }))
+  let round = 0
+  return groups.map((group, i) => {
+    const isCatchUp = group.length < FULL_ROUND_MIN_MATCHES
+    if (!isCatchUp) round++
+    const roundNumber = isCatchUp ? undefined : round
+    for (const m of group) m.round = roundNumber
+    return {
+      number: i + 1,
+      round: roundNumber,
+      isCatchUp,
+      label: formatDateRange(group[0].date, group[group.length - 1].date),
+      matches: group,
+    }
+  })
+}
+
+// --- Club helpers ---
+
+export function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+export function uniqueClubs(matches: Match[]): Club[] {
+  const map = new Map<string, Club>()
+  for (const m of matches) {
+    map.set(m.homeTeam.id, m.homeTeam)
+    map.set(m.awayTeam.id, m.awayTeam)
+  }
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, 'nl'))
 }
 
 // --- Data transformers ---
@@ -209,6 +262,36 @@ function getTeamLogo(team: ESPNTeam): string {
   return `https://a.espncdn.com/i/teamlogos/soccer/500/${team.id}.png`
 }
 
+function transformClub(team: ESPNTeam): Club {
+  return {
+    id: team.id,
+    slug: slugify(team.displayName),
+    name: team.displayName,
+    shortName: team.shortDisplayName ?? team.abbreviation,
+    logo: getTeamLogo(team),
+    color: team.color,
+  }
+}
+
+function transformDetails(details: ESPNDetail[] | undefined): MatchEvent[] | undefined {
+  if (!details?.length) return undefined
+  const events: MatchEvent[] = []
+  for (const d of details) {
+    let type: MatchEvent['type'] | null = null
+    if (d.scoringPlay) type = d.ownGoal ? 'own-goal' : d.penaltyKick ? 'penalty' : 'goal'
+    else if (d.redCard) type = 'red'
+    else if (d.yellowCard) type = 'yellow'
+    if (!type || !d.team?.id) continue
+    events.push({
+      minute: d.clock?.displayValue ?? '',
+      type,
+      teamId: d.team.id,
+      player: d.athletesInvolved?.[0]?.displayName ?? '',
+    })
+  }
+  return events.length > 0 ? events : undefined
+}
+
 function transformEvent(event: ESPNEvent): Match {
   const comp = event.competitions[0]
   const home = comp.competitors.find((c) => c.homeAway === 'home')!
@@ -225,24 +308,18 @@ function transformEvent(event: ESPNEvent): Match {
 
   return {
     id: event.id,
-    homeTeam: {
-      id: home.team.id,
-      name: home.team.displayName,
-      shortName: home.team.abbreviation,
-      logo: getTeamLogo(home.team),
-    },
-    awayTeam: {
-      id: away.team.id,
-      name: away.team.displayName,
-      shortName: away.team.abbreviation,
-      logo: getTeamLogo(away.team),
-    },
+    homeTeam: transformClub(home.team),
+    awayTeam: transformClub(away.team),
     date: event.date,
     status,
+    clock: status === 'live' ? comp.status.displayClock : undefined,
     score:
       status !== 'scheduled'
         ? { home: parseInt(home.score) || 0, away: parseInt(away.score) || 0 }
         : undefined,
+    venue: comp.venue?.fullName,
+    city: comp.venue?.address?.city,
+    events: status !== 'scheduled' ? transformDetails(comp.details) : undefined,
     broadcasts: [
       { name: 'ESPN', type: 'tv' },
       { name: 'ESPN.nl', type: 'online', url: 'https://www.espn.nl' },
@@ -260,12 +337,7 @@ function transformStandings(data: ESPNStandingsResponse): StandingEntry[] {
 
       return {
         position: 0, // assigned after sorting
-        club: {
-          id: entry.team.id,
-          name: entry.team.displayName,
-          shortName: entry.team.abbreviation,
-          logo: getTeamLogo(entry.team),
-        },
+        club: transformClub(entry.team),
         played: stat('gamesPlayed'),
         won: stat('wins'),
         drawn: stat('ties'),
@@ -435,27 +507,20 @@ async function fetchSeasonYear(): Promise<number> {
   }
 }
 
-const DAYS_BACK = 63 // ~9 rounds of results, enough for a 5-match form line
 const DAYS_AHEAD = 42 // ~6 rounds ahead, bridges international and winter breaks
 
-export async function fetchEredivisieData(): Promise<{
-  matchweeks: Matchweek[]
-  standings: StandingEntry[]
-  allMatches: Match[]
-  topScorers: TopScorer[]
-  topAssisters: TopAssister[]
-  standingsSeason: SeasonInfo | null
-  leadersSeason: SeasonInfo | null
-}> {
-  const today = new Date()
-  const from = new Date(today)
-  from.setUTCDate(from.getUTCDate() - DAYS_BACK)
-  const to = new Date(today)
+export async function fetchEredivisieData(): Promise<EredivisieData> {
+  const seasonYear = await fetchSeasonYear()
+
+  // Whole season so far (Eredivisie starts in August; July is a safe lower
+  // bound) plus the upcoming weeks. Past months are cached for a day, so
+  // this is only a handful of live requests per revalidation.
+  const from = new Date(Date.UTC(seasonYear, 6, 1))
+  const to = new Date()
   to.setUTCDate(to.getUTCDate() + DAYS_AHEAD)
 
   // Every feed is fetched independently so one failing endpoint never
   // empties the whole page.
-  const seasonYear = await fetchSeasonYear()
   const [events, currentStandings, currentLeaders] = await Promise.all([
     fetchEventsBetween(from, to),
     fetchStandingsForSeason(seasonYear),
@@ -495,6 +560,20 @@ export async function fetchEredivisieData(): Promise<{
 
   const enrichedMatches = assignChannels(allMatches, standings)
   const matchweeks = groupIntoMatchweeks(enrichedMatches)
+  const clubs = uniqueClubs(enrichedMatches)
 
-  return { matchweeks, standings, allMatches: enrichedMatches, topScorers, topAssisters, standingsSeason, leadersSeason }
+  return { seasonYear, matchweeks, standings, allMatches: enrichedMatches, clubs, topScorers, topAssisters, standingsSeason, leadersSeason }
+}
+
+// Convenience lookups for detail pages
+export async function findClubBySlug(slug: string): Promise<{ club: Club; data: EredivisieData } | null> {
+  const data = await fetchEredivisieData()
+  const club = data.clubs.find((c) => c.slug === slug)
+  return club ? { club, data } : null
+}
+
+export async function findMatchById(id: string): Promise<{ match: Match; data: EredivisieData } | null> {
+  const data = await fetchEredivisieData()
+  const match = data.allMatches.find((m) => m.id === id)
+  return match ? { match, data } : null
 }

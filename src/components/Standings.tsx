@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { StandingEntry, FormResult, SeasonInfo } from '@/data/types'
 
 const formColors: Record<FormResult, string> = {
@@ -28,7 +29,10 @@ export function Standings({ standings, season }: { standings: StandingEntry[]; s
     return (
       <section id="stand" className="mx-auto w-full max-w-5xl px-4 py-10">
         <h2 className="mb-4 text-2xl font-extrabold text-foreground">Eredivisie Stand</h2>
-        <p className="text-sm text-muted">Stand niet beschikbaar.</p>
+        <div className="rounded-xl border border-dashed border-border bg-card/50 px-5 py-8 text-center">
+          <p className="text-sm font-semibold text-foreground">Stand tijdelijk niet beschikbaar</p>
+          <p className="mt-1 text-sm text-muted">De standen van ESPN konden niet worden geladen. Probeer het over een paar minuten opnieuw.</p>
+        </div>
       </section>
     )
   }
@@ -54,7 +58,7 @@ export function Standings({ standings, season }: { standings: StandingEntry[]; s
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b-2 border-accent/10 text-left text-[11px] font-bold uppercase tracking-wider text-muted">
-              <th className="px-4 py-3.5 w-12">#</th>
+              <th className="w-12 px-3 py-3.5 sm:px-4">#</th>
               <th className="px-4 py-3.5">Club</th>
               <th className="px-4 py-3.5 text-center">GS</th>
               <th className="px-4 py-3.5 text-center">W</th>
@@ -75,7 +79,7 @@ export function Standings({ standings, season }: { standings: StandingEntry[]; s
                   key={entry.club.id}
                   className="border-b border-border transition-colors last:border-b-0 hover:bg-background"
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3 sm:px-4">
                     <div className="flex items-center gap-1.5">
                       <span className="w-5 font-bold text-muted">{entry.position}</span>
                       {dot ? (
@@ -86,10 +90,11 @@ export function Standings({ standings, season }: { standings: StandingEntry[]; s
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <Image src={entry.club.logo} alt={entry.club.name} width={22} height={22} />
-                      <span className="font-semibold text-foreground">{entry.club.name}</span>
-                    </div>
+                    <Link href={`/club/${entry.club.slug}`} className="flex items-center gap-2.5 hover:text-accent">
+                      <Image src={entry.club.logo} alt="" width={22} height={22} className="h-[22px] w-[22px] shrink-0" />
+                      <span className="whitespace-nowrap font-semibold text-foreground sm:hidden">{entry.club.shortName}</span>
+                      <span className="hidden whitespace-nowrap font-semibold text-foreground sm:inline">{entry.club.name}</span>
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-center text-muted">{entry.played}</td>
                   <td className="px-4 py-3 text-center text-muted">{entry.won}</td>

@@ -12,6 +12,7 @@
   --muted-light: #94a3b8;
   --accent: #e01e36;
   --accent-light: #fee2e5;
+  --club-color: var(--accent);
 }
 
 .dark {
@@ -43,7 +44,7 @@
 html {
   scroll-behavior: smooth;
   /* Keep anchor targets clear of the sticky header (taller on mobile: logo bar + nav bar) */
-  scroll-padding-top: 7.5rem;
+  scroll-padding-top: 8rem;
 }
 
 @media (min-width: 640px) {

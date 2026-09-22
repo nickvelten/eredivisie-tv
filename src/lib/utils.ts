@@ -1,15 +1,4 @@
-import { Club, Match } from '@/data/types'
-
 const TZ = 'Europe/Amsterdam'
-
-export function uniqueClubs(matches: Match[]): Club[] {
-  const map = new Map<string, Club>()
-  for (const m of matches) {
-    map.set(m.homeTeam.id, m.homeTeam)
-    map.set(m.awayTeam.id, m.awayTeam)
-  }
-  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, 'nl'))
-}
 
 export function formatDutchDate(dateStr: string): string {
   const date = new Date(dateStr)

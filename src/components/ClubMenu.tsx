@@ -6,12 +6,11 @@ import { Club } from '@/data/types'
 import { useFavoriteClub } from '@/lib/favorite-club'
 
 export function ClubMenu({ clubs }: { clubs: Club[] }) {
-  const { favoriteId, setFavorite } = useFavoriteClub()
+  const { favoriteId, favorite, setFavorite } = useFavoriteClub()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const panelId = useId()
 
-  const favorite = clubs.find((c) => c.id === favoriteId)
 
   useEffect(() => {
     if (!open) return
@@ -46,7 +45,7 @@ export function ClubMenu({ clubs }: { clubs: Club[] }) {
         aria-controls={panelId}
         className={`flex items-center gap-2 rounded-lg py-2 pl-2.5 pr-3 text-sm font-medium transition-colors ${
           favorite
-            ? 'bg-accent-light text-accent'
+            ? 'bg-(--club-color)/12 text-foreground ring-1 ring-(--club-color)/40'
             : 'text-muted hover:bg-accent-light hover:text-accent'
         }`}
       >

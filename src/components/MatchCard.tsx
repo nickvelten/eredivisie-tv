@@ -1,103 +1,157 @@
 'use client'
 
 import Image from 'next/image'
-import { Match } from '@/data/types'
-import { formatTime } from '@/lib/utils'
+import Link from 'next/link'
+import { Match, Club } from '@/data/types'
+import { formatTime, formatDutchDate } from '@/lib/utils'
 import { useFavoriteClub } from '@/lib/favorite-club'
 import { BroadcastBadge } from './BroadcastBadge'
 
 const UNIBET_URL = 'https://www.unibet.nl/betting/sports/filter/football/netherlands/eredivisie'
 
-export function MatchCard({ match }: { match: Match }) {
+function Team({ club, winner, large }: { club: Club; winner: boolean; large: boolean }) {
+  const size = large ? 64 : 48
+  return (
+    <div className="flex min-w-0 flex-col items-center gap-2 text-center">
+      <Image
+        src={club.logo}
+        alt=""
+        width={size}
+        height={size}
+        className={large ? 'h-16 w-16' : 'h-12 w-12'}
+      />
+      <span
+        className={`w-full truncate text-xs leading-tight sm:text-[13px] ${
+          winner ? 'font-extrabold text-foreground' : 'font-semibold text-foreground/80'
+        }`}
+      >
+        {club.shortName}
+      </span>
+    </div>
+  )
+}
+
+function Centre({ match }: { match: Match }) {
+  if (match.status === 'scheduled') {
+    return (
+      <div className="flex flex-col items-center gap-1">
+        <span className="rounded-lg bg-accent-light px-3 py-1 text-lg font-extrabold tabular-nums text-accent">
+          {formatTime(match.date)}
+        </span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-light">aftrap</span>
+      </div>
+    )
+  }
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <span className="text-2xl font-extrabold tabular-nums tracking-tight text-foreground">
+        {match.score?.home ?? 0}
+        <span className="mx-1 text-muted-light">–</span>
+        {match.score?.away ?? 0}
+      </span>
+      {match.status === 'live' ? (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold text-white">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75 motion-reduce:animate-none" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+          </span>
+          {match.clock ?? 'Live'}
+        </span>
+      ) : (
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-light">eindstand</span>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Compact match tile for a 2–3 column grid: home team left, away team right,
+ * kickoff time or score in the middle, broadcast and odds in the footer.
+ */
+export function MatchCard({
+  match,
+  featured = false,
+  showDate = false,
+}: {
+  match: Match
+  featured?: boolean
+  showDate?: boolean
+}) {
   const { favoriteId } = useFavoriteClub()
   const isFavorite =
     favoriteId !== null && (match.homeTeam.id === favoriteId || match.awayTeam.id === favoriteId)
 
+  const homeWins = match.status === 'finished' && !!match.score && match.score.home > match.score.away
+  const awayWins = match.status === 'finished' && !!match.score && match.score.away > match.score.home
+  const tvBroadcast = match.broadcasts.find((b) => b.type === 'tv')
+  const contextLabel = showDate
+    ? formatDutchDate(match.date)
+    : match.round
+      ? `Speelronde ${match.round}`
+      : 'Inhaalwedstrijd'
+
   return (
-    <div
-      className={`rounded-xl bg-card shadow-sm transition-shadow hover:shadow-md ${
-        isFavorite ? 'ring-2 ring-accent/60' : 'ring-1 ring-border'
-      }`}
+    <article
+      className={`relative flex flex-col rounded-xl bg-card shadow-sm transition-shadow hover:shadow-md ${
+        isFavorite ? 'ring-2 ring-(--club-color)' : 'ring-1 ring-border'
+      } ${featured ? 'sm:col-span-2' : ''}`}
     >
-      <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-5 sm:py-3.5">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <Image src={match.homeTeam.logo} alt={match.homeTeam.name} width={30} height={30} className="h-5 w-5 shrink-0 sm:h-[30px] sm:w-[30px]" />
-          <span className="truncate text-xs font-bold text-foreground sm:text-sm">{match.homeTeam.name}</span>
-          <span className="shrink-0 text-[10px] font-medium text-muted-light sm:text-xs">vs</span>
-          <span className="truncate text-xs font-bold text-foreground sm:text-sm">{match.awayTeam.name}</span>
-          <Image src={match.awayTeam.logo} alt={match.awayTeam.name} width={30} height={30} className="h-5 w-5 shrink-0 sm:h-[30px] sm:w-[30px]" />
-        </div>
-        <div className="shrink-0">
-          {match.status === 'finished' && match.score ? (
-            <span className="rounded-md bg-foreground/5 px-2 py-0.5 text-xs font-bold text-foreground sm:px-2.5 sm:py-1 sm:text-sm">
-              {match.score.home} - {match.score.away}
-            </span>
-          ) : match.status === 'live' ? (
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="animate-pulse rounded-full bg-accent px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white sm:px-2 sm:text-[10px]">Live</span>
-              {match.score && (
-                <span className="text-xs font-bold text-foreground sm:text-sm">
-                  {match.score.home} - {match.score.away}
-                </span>
-              )}
-            </div>
-          ) : (
-            <span className="rounded-md bg-accent-light px-2 py-0.5 text-xs font-bold text-accent sm:px-2.5 sm:py-1 sm:text-sm">
-              {formatTime(match.date)}
-            </span>
+      <Link
+        href={`/wedstrijd/${match.id}`}
+        className="absolute inset-0 z-0 rounded-xl"
+        aria-label={`${match.homeTeam.name} – ${match.awayTeam.name}`}
+      />
+
+      <div className="pointer-events-none relative z-10 flex items-center justify-between gap-3 px-4 pt-3 text-[11px] font-semibold uppercase tracking-wider text-muted-light">
+        <span className="truncate">
+          {featured && (
+            <span className="mr-2 rounded bg-accent px-1.5 py-0.5 text-[10px] font-extrabold text-white">Topper</span>
           )}
-        </div>
+          {contextLabel}
+        </span>
+        {match.status === 'live' ? (
+          <span className="shrink-0 text-accent">Live</span>
+        ) : (
+          <span className="shrink-0 truncate">{match.status === 'finished' ? 'Gespeeld' : match.venue ?? ''}</span>
+        )}
       </div>
 
-      <div className="flex items-center gap-2 border-t border-border px-4 py-2 sm:px-5 sm:py-2.5">
-        {match.broadcasts.length > 0 && (
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-light sm:text-[11px]">Kijk op:</span>
-            {match.broadcasts.map((b) => (
-              <BroadcastBadge key={b.name} broadcast={b} />
-            ))}
-          </div>
-        )}
+      <div className="pointer-events-none relative z-10 grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-4">
+        <Team club={match.homeTeam} winner={homeWins} large={featured} />
+        <Centre match={match} />
+        <Team club={match.awayTeam} winner={awayWins} large={featured} />
+      </div>
 
-        {/* Unibet odds CTA */}
+      <div className="relative z-10 mt-auto flex items-center gap-2 border-t border-border px-4 py-2.5">
+        {tvBroadcast && <BroadcastBadge broadcast={tvBroadcast} />}
         {match.odds && match.status === 'scheduled' ? (
           <a
             href={UNIBET_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-full bg-[#147B45] px-2 py-1 text-[9px] font-bold text-white shadow-sm transition-all hover:bg-[#00531D] hover:shadow-md sm:gap-2 sm:px-3 sm:text-[11px]"
+            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#147B45] px-2.5 py-1 text-[10px] font-bold text-white shadow-sm transition-all hover:bg-[#00531D] hover:shadow-md"
           >
-            <span className="flex items-center gap-1 border-r border-white/20 pr-1 sm:gap-1.5 sm:pr-2">
+            <span className="flex items-center gap-1 border-r border-white/20 pr-1.5">
               <span className="text-[#FFE71F]">1</span>
               <span>{match.odds.home.toFixed(2)}</span>
             </span>
-            <span className="flex items-center gap-1 border-r border-white/20 pr-1 sm:gap-1.5 sm:pr-2">
+            <span className="flex items-center gap-1 border-r border-white/20 pr-1.5">
               <span className="text-[#FFE71F]">X</span>
               <span>{match.odds.draw.toFixed(2)}</span>
             </span>
-            <span className="flex items-center gap-1 sm:gap-1.5">
+            <span className="flex items-center gap-1">
               <span className="text-[#FFE71F]">2</span>
               <span>{match.odds.away.toFixed(2)}</span>
             </span>
-            <span className="ml-0.5 rounded bg-[#FFE71F] px-1 py-0.5 text-[8px] font-extrabold text-[#00531D] sm:ml-1 sm:px-1.5 sm:text-[10px]">
-              Unibet
-            </span>
           </a>
         ) : (
-          <a
-            href={UNIBET_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-full bg-[#147B45] px-2 py-1 text-[9px] font-bold text-white shadow-sm transition-all hover:bg-[#00531D] hover:shadow-md sm:gap-1.5 sm:px-3 sm:text-[11px]"
-          >
-            Zet in bij{' '}
-            <span className="rounded bg-[#FFE71F] px-1 py-0.5 text-[8px] font-extrabold text-[#00531D] sm:px-1.5 sm:text-[10px]">
-              Unibet
-            </span>
-            →
-          </a>
+          <span className="ml-auto text-[11px] font-medium text-muted-light">ESPN.nl</span>
         )}
       </div>
-    </div>
+    </article>
   )
+}
+
+export function MatchGrid({ children }: { children: React.ReactNode }) {
+  return <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
 }

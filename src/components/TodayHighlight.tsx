@@ -1,9 +1,16 @@
 import { isToday, formatDutchDate, isSameDay } from '@/lib/utils'
-import { MatchCard } from './MatchCard'
+import { MatchCard, MatchGrid } from './MatchCard'
 import { KickoffCountdown } from './KickoffCountdown'
-import { Match } from '@/data/types'
+import { Match, StandingEntry } from '@/data/types'
 
-export function TodayHighlight({ matches }: { matches: Match[] }) {
+// Lower is bigger: sum of both teams' league positions
+function importance(m: Match, rank: Map<string, number>): number {
+  return (rank.get(m.homeTeam.id) ?? 18) + (rank.get(m.awayTeam.id) ?? 18)
+}
+
+export function TodayHighlight({ matches, standings }: { matches: Match[]; standings: StandingEntry[] }) {
+  const rank = new Map(standings.map((s) => [s.club.id, s.position]))
+  const live = matches.filter((m) => m.status === 'live')
   const todayMatches = matches.filter((m) => isToday(m.date))
 
   let displayMatches: Match[]
@@ -12,28 +19,41 @@ export function TodayHighlight({ matches }: { matches: Match[] }) {
 
   if (todayMatches.length > 0) {
     displayMatches = todayMatches
-    title = 'Vandaag op TV'
+    title = live.length > 0 ? 'Nu live' : 'Vandaag op TV'
     subtitle = `${todayMatches.length} wedstrijd${todayMatches.length > 1 ? 'en' : ''} vandaag`
   } else {
     const upcoming = matches
       .filter((m) => m.status === 'scheduled')
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    // Show ALL matches of the next match day, not just 3
     if (upcoming.length > 0) {
       const nextDay = upcoming[0].date
       displayMatches = upcoming.filter((m) => isSameDay(m.date, nextDay))
     } else {
       displayMatches = []
     }
-    title = displayMatches.length > 0 ? 'Eerstvolgende wedstrijden' : 'Geen wedstrijden gepland'
-    if (displayMatches.length > 0) {
-      subtitle = formatDutchDate(displayMatches[0].date)
-    }
+    title = 'Eerstvolgende speeldag'
+    if (displayMatches.length > 0) subtitle = formatDutchDate(displayMatches[0].date)
   }
 
-  if (displayMatches.length === 0) return null
+  if (displayMatches.length === 0) {
+    return (
+      <section id="vandaag" className="mx-auto w-full max-w-5xl px-4 py-10">
+        <h2 className="mb-4 text-2xl font-extrabold text-foreground">Vandaag</h2>
+        <div className="rounded-xl border border-dashed border-border bg-card/50 px-5 py-8 text-center">
+          <p className="text-sm font-semibold text-foreground">Geen wedstrijden in de planning</p>
+          <p className="mt-1 text-sm text-muted">Zodra ESPN het nieuwe programma publiceert, zie je hier de eerstvolgende speeldag.</p>
+        </div>
+      </section>
+    )
+  }
 
-  // Countdown to the first upcoming kickoff among the displayed matches
+  // Live matches first, then the biggest fixture, then kickoff order
+  const sorted = [...displayMatches].sort((a, b) => {
+    if ((a.status === 'live') !== (b.status === 'live')) return a.status === 'live' ? -1 : 1
+    return importance(a, rank) - importance(b, rank) || new Date(a.date).getTime() - new Date(b.date).getTime()
+  })
+  const featuredId = sorted.find((m) => m.status !== 'finished')?.id
+
   const nextKickoff = displayMatches
     .filter((m) => m.status === 'scheduled')
     .map((m) => m.date)
@@ -50,11 +70,11 @@ export function TodayHighlight({ matches }: { matches: Match[] }) {
         )}
         {nextKickoff && <KickoffCountdown date={nextKickoff} />}
       </div>
-      <div className="flex flex-col gap-3">
-        {displayMatches.map((match) => (
-          <MatchCard key={match.id} match={match} />
+      <MatchGrid>
+        {sorted.map((match) => (
+          <MatchCard key={match.id} match={match} featured={match.id === featuredId && sorted.length > 1} />
         ))}
-      </div>
+      </MatchGrid>
     </section>
   )
 }

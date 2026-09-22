@@ -1,8 +1,10 @@
 export type Club = {
   id: string
+  slug: string // URL-safe, e.g. "feyenoord-rotterdam"
   name: string
-  shortName: string
+  shortName: string // e.g. "Feyenoord"
   logo: string
+  color?: string // hex without #, from ESPN
 }
 
 export type Broadcast = {
@@ -17,19 +19,33 @@ export type Odds = {
   away: number
 }
 
+export type MatchEvent = {
+  minute: string // e.g. "45'+2'"
+  type: 'goal' | 'own-goal' | 'penalty' | 'yellow' | 'red'
+  teamId: string
+  player: string
+}
+
 export type Match = {
   id: string
   homeTeam: Club
   awayTeam: Club
   date: string
   status: 'scheduled' | 'live' | 'finished'
+  clock?: string // live match clock, e.g. "67'"
   score?: { home: number; away: number }
+  venue?: string
+  city?: string
+  round?: number
   broadcasts: Broadcast[]
   odds?: Odds
+  events?: MatchEvent[]
 }
 
 export type Matchweek = {
-  number: number
+  number: number // sequential index within the fetched window
+  round?: number // official round number (undefined for catch-up clusters)
+  isCatchUp: boolean // rescheduled matches outside a full round
   label: string // e.g. "vr 18 – zo 20 september"
   matches: Match[]
 }
@@ -78,4 +94,16 @@ export type Provider = {
   description: string
   url: string
   channels: string[]
+}
+
+export type EredivisieData = {
+  seasonYear: number
+  matchweeks: Matchweek[]
+  standings: StandingEntry[]
+  allMatches: Match[]
+  clubs: Club[]
+  topScorers: TopScorer[]
+  topAssisters: TopAssister[]
+  standingsSeason: SeasonInfo | null
+  leadersSeason: SeasonInfo | null
 }
