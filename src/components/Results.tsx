@@ -35,7 +35,7 @@ export function Results({ matchweeks }: { matchweeks: Matchweek[] }) {
         </button>
         <div className="text-center">
           <h2 className="text-2xl font-extrabold text-foreground">Uitslagen</h2>
-          <p className="text-xs text-muted-light">Speelronde {week.number}</p>
+          <p className="text-xs text-muted-light">{week.label}</p>
         </div>
         <button
           onClick={() => setWeekIndex((i) => Math.min(finishedWeeks.length - 1, i + 1))}

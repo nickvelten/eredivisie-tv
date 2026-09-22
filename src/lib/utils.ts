@@ -1,4 +1,15 @@
+import { Club, Match } from '@/data/types'
+
 const TZ = 'Europe/Amsterdam'
+
+export function uniqueClubs(matches: Match[]): Club[] {
+  const map = new Map<string, Club>()
+  for (const m of matches) {
+    map.set(m.homeTeam.id, m.homeTeam)
+    map.set(m.awayTeam.id, m.awayTeam)
+  }
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, 'nl'))
+}
 
 export function formatDutchDate(dateStr: string): string {
   const date = new Date(dateStr)
@@ -15,6 +26,30 @@ export function formatDutchDate(dateStr: string): string {
   const month = parts.find((p) => p.type === 'month')?.value ?? ''
 
   return `${weekday} ${day} ${month}`
+}
+
+function shortDateParts(date: Date): { weekday: string; day: string; month: string } {
+  const parts = new Intl.DateTimeFormat('nl-NL', {
+    timeZone: TZ,
+    weekday: 'short',
+    day: 'numeric',
+    month: 'long',
+  }).formatToParts(date)
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ''
+  return { weekday: get('weekday').replace('.', ''), day: get('day'), month: get('month') }
+}
+
+// "vr 18 – zo 20 september", "vr 30 oktober – zo 1 november" or "di 15 september"
+export function formatDateRange(startStr: string, endStr: string): string {
+  const start = shortDateParts(new Date(startStr))
+  const end = shortDateParts(new Date(endStr))
+  if (start.day === end.day && start.month === end.month) {
+    return `${start.weekday} ${start.day} ${start.month}`
+  }
+  if (start.month === end.month) {
+    return `${start.weekday} ${start.day} – ${end.weekday} ${end.day} ${end.month}`
+  }
+  return `${start.weekday} ${start.day} ${start.month} – ${end.weekday} ${end.day} ${end.month}`
 }
 
 export function formatTime(dateStr: string): string {

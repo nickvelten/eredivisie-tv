@@ -1,4 +1,5 @@
 import { Match, Matchweek, StandingEntry, Odds, TopScorer, TopAssister, FormResult, SeasonInfo } from '@/data/types'
+import { formatDateRange } from '@/lib/utils'
 
 const ESPN_API = 'https://site.api.espn.com/apis'
 const LEAGUE = 'ned.1'
@@ -93,42 +94,86 @@ interface ESPNStandingsResponse {
 
 // --- Date helpers ---
 
-function formatDateParam(date: Date): string {
-  return date.toISOString().slice(0, 10).replace(/-/g, '')
+const TZ = 'Europe/Amsterdam'
+
+function amsterdamDateKey(dateStr: string): string {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: TZ }).format(new Date(dateStr))
 }
 
-// --- Calendar → Matchweek grouping ---
+function monthParam(date: Date): string {
+  return `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, '0')}`
+}
 
-function groupCalendarIntoWeeks(calendar: string[]): { start: Date; end: Date; number: number }[] {
-  if (calendar.length === 0) return []
+// ESPN no longer accepts `dates=YYYYMMDD-YYYYMMDD` ranges on the scoreboard
+// endpoint (HTTP 400 "Failed to get events endpoint"). Whole months
+// (`dates=YYYYMM`) still work, so fetch each month in the window and merge.
+function monthsBetween(from: Date, to: Date): string[] {
+  const months: string[] = []
+  const cursor = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), 1))
+  while (cursor <= to) {
+    months.push(monthParam(cursor))
+    cursor.setUTCMonth(cursor.getUTCMonth() + 1)
+  }
+  return months
+}
 
-  const dates = calendar.map((d) => new Date(d)).sort((a, b) => a.getTime() - b.getTime())
-  const weeks: { start: Date; end: Date; number: number }[] = []
-
-  let weekStart = dates[0]
-  let weekEnd = dates[0]
-  let weekNum = 1
-
-  for (let i = 1; i < dates.length; i++) {
-    const gapDays = (dates[i].getTime() - weekEnd.getTime()) / (1000 * 60 * 60 * 24)
-    if (gapDays <= 5) {
-      weekEnd = dates[i]
-    } else {
-      weeks.push({ start: weekStart, end: weekEnd, number: weekNum++ })
-      weekStart = dates[i]
-      weekEnd = dates[i]
+async function fetchScoreboardMonth(month: string): Promise<ESPNEvent[]> {
+  const url = `${ESPN_API}/site/v2/sports/soccer/${LEAGUE}/scoreboard?dates=${month}&limit=200`
+  try {
+    const res = await fetch(url, { next: { revalidate: REVALIDATE } })
+    if (!res.ok) {
+      console.error(`ESPN scoreboard ${month} failed: ${res.status}`)
+      return []
     }
+    const data: ESPNScoreboardResponse = await res.json()
+    return data.events ?? []
+  } catch (error) {
+    console.error(`ESPN scoreboard ${month} failed:`, error)
+    return []
   }
-  weeks.push({ start: weekStart, end: weekEnd, number: weekNum })
-
-  return weeks
 }
 
-function findCurrentWeekIndex(weeks: { start: Date; end: Date }[], today: Date): number {
-  for (let i = 0; i < weeks.length; i++) {
-    if (today <= weeks[i].end) return i
+async function fetchEventsBetween(from: Date, to: Date): Promise<ESPNEvent[]> {
+  const perMonth = await Promise.all(monthsBetween(from, to).map(fetchScoreboardMonth))
+  const seen = new Set<string>()
+  const events: ESPNEvent[] = []
+  for (const event of perMonth.flat()) {
+    if (seen.has(event.id)) continue
+    seen.add(event.id)
+    const date = new Date(event.date)
+    if (date >= from && date <= to) events.push(event)
   }
-  return weeks.length - 1
+  return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+}
+
+// --- Match day grouping ---
+// ESPN carries no round numbers for soccer and its calendar only lists a
+// subset of dates, so group matches into "speelrondes" by clustering
+// consecutive match days (Fri/Sat/Sun weekends, Tue/Wed midweeks).
+
+function groupIntoMatchweeks(matches: Match[]): Matchweek[] {
+  const sorted = [...matches].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  const groups: Match[][] = []
+
+  for (const match of sorted) {
+    const last = groups[groups.length - 1]
+    if (last) {
+      const prevKey = amsterdamDateKey(last[last.length - 1].date)
+      const curKey = amsterdamDateKey(match.date)
+      const gapDays = (Date.parse(curKey) - Date.parse(prevKey)) / 86_400_000
+      if (gapDays <= 1) {
+        last.push(match)
+        continue
+      }
+    }
+    groups.push([match])
+  }
+
+  return groups.map((group, i) => ({
+    number: i + 1,
+    label: formatDateRange(group[0].date, group[group.length - 1].date),
+    matches: group,
+  }))
 }
 
 // --- Data transformers ---
@@ -275,16 +320,26 @@ function seasonLabel(year: number): string {
 
 async function fetchLeadersForSeason(year: number): Promise<{ topScorers: TopScorer[]; topAssisters: TopAssister[] }> {
   const url = `${ESPN_API}/site/v3/sports/soccer/${LEAGUE}/leaders?season=${year}&seasontype=1`
-  const res = await fetch(url, { next: { revalidate: REVALIDATE } })
-  if (!res.ok) return { topScorers: [], topAssisters: [] }
-  return transformLeaders(await res.json())
+  try {
+    const res = await fetch(url, { next: { revalidate: REVALIDATE } })
+    if (!res.ok) return { topScorers: [], topAssisters: [] }
+    return transformLeaders(await res.json())
+  } catch (error) {
+    console.error('ESPN leaders failed:', error)
+    return { topScorers: [], topAssisters: [] }
+  }
 }
 
 async function fetchStandingsForSeason(year: number): Promise<StandingEntry[]> {
   const url = `${ESPN_API}/v2/sports/soccer/${LEAGUE}/standings?season=${year}`
-  const res = await fetch(url, { next: { revalidate: REVALIDATE } })
-  if (!res.ok) return []
-  return transformStandings(await res.json())
+  try {
+    const res = await fetch(url, { next: { revalidate: REVALIDATE } })
+    if (!res.ok) return []
+    return transformStandings(await res.json())
+  } catch (error) {
+    console.error('ESPN standings failed:', error)
+    return []
+  }
 }
 
 // --- Form calculation ---
@@ -366,6 +421,23 @@ function assignChannels(matches: Match[], standings: StandingEntry[]): Match[] {
 
 // --- Main fetch function ---
 
+async function fetchSeasonYear(): Promise<number> {
+  const now = new Date()
+  const fallback = now.getUTCMonth() >= 6 ? now.getUTCFullYear() : now.getUTCFullYear() - 1
+  try {
+    const res = await fetch(`${ESPN_API}/site/v2/sports/soccer/${LEAGUE}/scoreboard`, { next: { revalidate: REVALIDATE } })
+    if (!res.ok) return fallback
+    const data: ESPNScoreboardResponse = await res.json()
+    return data.leagues?.[0]?.season?.year ?? fallback
+  } catch (error) {
+    console.error('ESPN season lookup failed:', error)
+    return fallback
+  }
+}
+
+const DAYS_BACK = 63 // ~9 rounds of results, enough for a 5-match form line
+const DAYS_AHEAD = 42 // ~6 rounds ahead, bridges international and winter breaks
+
 export async function fetchEredivisieData(): Promise<{
   matchweeks: Matchweek[]
   standings: StandingEntry[]
@@ -375,117 +447,54 @@ export async function fetchEredivisieData(): Promise<{
   standingsSeason: SeasonInfo | null
   leadersSeason: SeasonInfo | null
 }> {
-  try {
-    // 1. Fetch scoreboard to get calendar
-    const calUrl = `${ESPN_API}/site/v2/sports/soccer/${LEAGUE}/scoreboard`
-    const calRes = await fetch(calUrl, { next: { revalidate: REVALIDATE } })
-    if (!calRes.ok) throw new Error('Failed to fetch calendar')
-    const calData: ESPNScoreboardResponse = await calRes.json()
+  const today = new Date()
+  const from = new Date(today)
+  from.setUTCDate(from.getUTCDate() - DAYS_BACK)
+  const to = new Date(today)
+  to.setUTCDate(to.getUTCDate() + DAYS_AHEAD)
 
-    const calendar = calData.leagues[0]?.calendar ?? []
-    const weeks = groupCalendarIntoWeeks(calendar)
+  // Every feed is fetched independently so one failing endpoint never
+  // empties the whole page.
+  const seasonYear = await fetchSeasonYear()
+  const [events, currentStandings, currentLeaders] = await Promise.all([
+    fetchEventsBetween(from, to),
+    fetchStandingsForSeason(seasonYear),
+    fetchLeadersForSeason(seasonYear),
+  ])
 
-    // Current season year from ESPN (e.g. 2026 for the 2026/27 season)
-    const seasonYear = calData.leagues[0]?.season?.year ?? new Date().getFullYear()
+  const allMatches = events.map(transformEvent)
 
-    // 2. Find current week and determine fetch range (wider range for results)
-    const today = new Date()
-    const currentIdx = findCurrentWeekIndex(weeks, today)
-    const startIdx = Math.max(0, currentIdx - 4)
-    const endIdx = Math.min(weeks.length - 1, currentIdx + 2)
-
-    // Extend date range by 1 day on each side for safety
-    const rangeStart = new Date(weeks[startIdx].start)
-    rangeStart.setDate(rangeStart.getDate() - 1)
-    const rangeEnd = new Date(weeks[endIdx].end)
-    rangeEnd.setDate(rangeEnd.getDate() + 1)
-
-    // 3. Fetch matches for the range
-    const matchUrl = `${ESPN_API}/site/v2/sports/soccer/${LEAGUE}/scoreboard?dates=${formatDateParam(rangeStart)}-${formatDateParam(rangeEnd)}&limit=200`
-    const matchRes = await fetch(matchUrl, { next: { revalidate: REVALIDATE } })
-    if (!matchRes.ok) throw new Error('Failed to fetch matches')
-    const matchData: ESPNScoreboardResponse = await matchRes.json()
-
-    const allMatches = matchData.events.map(transformEvent)
-
-    // 4. Assign matches to matchweeks
-    const matchweeks: Matchweek[] = []
-    for (let i = startIdx; i <= endIdx; i++) {
-      const week = weeks[i]
-      const weekMatches = allMatches.filter((m) => {
-        const matchDate = new Date(m.date)
-        const dayBefore = new Date(week.start)
-        dayBefore.setDate(dayBefore.getDate() - 1)
-        const dayAfter = new Date(week.end)
-        dayAfter.setDate(dayAfter.getDate() + 1)
-        return matchDate >= dayBefore && matchDate <= dayAfter
-      })
-
-      if (weekMatches.length > 0) {
-        matchweeks.push({
-          number: week.number,
-          matches: weekMatches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
-        })
-      }
+  let standings = currentStandings
+  let standingsSeason: SeasonInfo | null = standings.length > 0 ? { label: seasonLabel(seasonYear), isCurrent: true } : null
+  const seasonNotStarted = standings.length > 0 && standings.every((s) => s.played === 0)
+  if (standings.length === 0 || seasonNotStarted) {
+    const previous = await fetchStandingsForSeason(seasonYear - 1)
+    if (previous.length > 0) {
+      standings = previous
+      standingsSeason = { label: seasonLabel(seasonYear - 1), isCurrent: false }
     }
-
-    // 5. Fetch standings, leaders, and recent results (for form) in parallel.
-    // Leaders and standings use the current season; early in a new season, when
-    // no matches have been played yet, fall back to the previous season so the
-    // page never shows an empty list or an all-zero table.
-    const formStart = new Date()
-    formStart.setDate(formStart.getDate() - 60)
-    const formUrl = `${ESPN_API}/site/v2/sports/soccer/${LEAGUE}/scoreboard?dates=${formatDateParam(formStart)}-${formatDateParam(new Date())}&limit=200`
-
-    const [currentStandings, currentLeaders, formRes] = await Promise.all([
-      fetchStandingsForSeason(seasonYear),
-      fetchLeadersForSeason(seasonYear),
-      fetch(formUrl, { next: { revalidate: REVALIDATE } }),
-    ])
-
-    const formMatches = formRes.ok ? (await formRes.json() as ESPNScoreboardResponse).events.map(transformEvent) : allMatches
-
-    let standings = currentStandings
-    let standingsSeason: SeasonInfo | null = standings.length > 0 ? { label: seasonLabel(seasonYear), isCurrent: true } : null
-    const seasonNotStarted = standings.length > 0 && standings.every((s) => s.played === 0)
-    if (standings.length === 0 || seasonNotStarted) {
-      const previous = await fetchStandingsForSeason(seasonYear - 1)
-      if (previous.length > 0) {
-        standings = previous
-        standingsSeason = { label: seasonLabel(seasonYear - 1), isCurrent: false }
-      }
-    }
-
-    let { topScorers, topAssisters } = currentLeaders
-    let leadersSeason: SeasonInfo | null = topScorers.length > 0 ? { label: seasonLabel(seasonYear), isCurrent: true } : null
-    if (topScorers.length === 0) {
-      const previous = await fetchLeadersForSeason(seasonYear - 1)
-      if (previous.topScorers.length > 0) {
-        topScorers = previous.topScorers
-        topAssisters = previous.topAssisters
-        leadersSeason = { label: seasonLabel(seasonYear - 1), isCurrent: false }
-      }
-    }
-
-    // Only show current-season form on a current-season standings table
-    if (standingsSeason?.isCurrent) {
-      for (const entry of standings) {
-        entry.form = calculateForm(entry.club.id, formMatches)
-      }
-    }
-
-    // 6. Assign ESPN channels based on match importance per timeslot
-    const enrichedMatches = assignChannels(allMatches, standings)
-
-    // Rebuild matchweeks with channel-enriched matches
-    const enrichedMatchweeks = matchweeks.map((mw) => ({
-      ...mw,
-      matches: mw.matches.map((m) => enrichedMatches.find((em) => em.id === m.id) ?? m),
-    }))
-
-    return { matchweeks: enrichedMatchweeks, standings, allMatches: enrichedMatches, topScorers, topAssisters, standingsSeason, leadersSeason }
-  } catch (error) {
-    console.error('Failed to fetch Eredivisie data:', error)
-    return { matchweeks: [], standings: [], allMatches: [], topScorers: [], topAssisters: [], standingsSeason: null, leadersSeason: null }
   }
+
+  let { topScorers, topAssisters } = currentLeaders
+  let leadersSeason: SeasonInfo | null = topScorers.length > 0 ? { label: seasonLabel(seasonYear), isCurrent: true } : null
+  if (topScorers.length === 0) {
+    const previous = await fetchLeadersForSeason(seasonYear - 1)
+    if (previous.topScorers.length > 0) {
+      topScorers = previous.topScorers
+      topAssisters = previous.topAssisters
+      leadersSeason = { label: seasonLabel(seasonYear - 1), isCurrent: false }
+    }
+  }
+
+  // Only show current-season form on a current-season standings table
+  if (standingsSeason?.isCurrent) {
+    for (const entry of standings) {
+      entry.form = calculateForm(entry.club.id, allMatches)
+    }
+  }
+
+  const enrichedMatches = assignChannels(allMatches, standings)
+  const matchweeks = groupIntoMatchweeks(enrichedMatches)
+
+  return { matchweeks, standings, allMatches: enrichedMatches, topScorers, topAssisters, standingsSeason, leadersSeason }
 }

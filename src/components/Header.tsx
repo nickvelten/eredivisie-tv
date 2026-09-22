@@ -1,9 +1,11 @@
 import Image from 'next/image'
+import { Club } from '@/data/types'
 import { ThemeToggle } from './ThemeToggle'
+import { ClubMenu } from './ClubMenu'
+import { NavLinks, NavItem } from './NavLinks'
 
-const navItems = [
+const navItems: NavItem[] = [
   { label: 'Vandaag', href: '#vandaag' },
-  { label: 'Mijn club', href: '#mijn-club' },
   { label: 'Programma', href: '#programma' },
   { label: 'Uitslagen', href: '#uitslagen' },
   { label: 'Stand', href: '#stand' },
@@ -11,7 +13,7 @@ const navItems = [
   { label: 'Providers', href: '#providers' },
 ]
 
-export function Header() {
+export function Header({ clubs = [] }: { clubs?: Club[] }) {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card/90 shadow-sm backdrop-blur-md">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-5 sm:py-5">
@@ -28,34 +30,16 @@ export function Header() {
           </span>
         </a>
         <div className="hidden items-center gap-1 sm:flex">
-          <nav className="flex gap-1">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="rounded-lg px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-accent-light hover:text-accent"
-              >
-                {item.label}
-              </a>
-            ))}
-          </nav>
+          <NavLinks items={navItems} variant="desktop" />
+          <ClubMenu clubs={clubs} />
           <ThemeToggle />
         </div>
       </div>
       {/* Mobile nav */}
       <div className="flex items-center border-t border-border sm:hidden">
-        <nav className="flex flex-1 gap-1 overflow-x-auto px-2 py-1.5">
-          {navItems.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium text-muted transition-colors hover:bg-accent-light hover:text-accent"
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
-        <div className="shrink-0 pr-1">
+        <NavLinks items={navItems} variant="mobile" />
+        <div className="flex shrink-0 items-center pr-1">
+          <ClubMenu clubs={clubs} />
           <ThemeToggle />
         </div>
       </div>

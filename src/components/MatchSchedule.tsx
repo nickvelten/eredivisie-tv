@@ -36,8 +36,8 @@ export function MatchSchedule({ matchweeks }: { matchweeks: Matchweek[] }) {
           ← Vorige
         </button>
         <div className="text-center">
-          <h2 className="text-2xl font-extrabold text-foreground">Speelronde {week.number}</h2>
-          <p className="text-xs text-muted-light">van {matchweeks.length > 0 ? matchweeks[matchweeks.length - 1].number : 0} speelrondes</p>
+          <h2 className="text-2xl font-extrabold text-foreground">Programma</h2>
+          <p className="text-xs text-muted-light">{week.label}</p>
         </div>
         <button
           onClick={() => setWeekIndex((i) => Math.min(matchweeks.length - 1, i + 1))}

@@ -1,5 +1,5 @@
 import { Header } from '@/components/Header'
-import { ClubPicker } from '@/components/ClubPicker'
+import { FavoriteNextMatch } from '@/components/FavoriteNextMatch'
 import { FavoriteClubProvider } from '@/lib/favorite-club'
 import { TodayHighlight } from '@/components/TodayHighlight'
 import { MatchSchedule } from '@/components/MatchSchedule'
@@ -8,11 +8,13 @@ import { Standings } from '@/components/Standings'
 import { TopScorers } from '@/components/TopScorers'
 import { Providers } from '@/components/Providers'
 import { fetchEredivisieData } from '@/lib/espn'
+import { uniqueClubs } from '@/lib/utils'
 
 export const revalidate = 3600 // ISR: revalidate every hour
 
 export default async function Home() {
   const { matchweeks, standings, allMatches, topScorers, topAssisters, standingsSeason, leadersSeason } = await fetchEredivisieData()
+  const clubs = uniqueClubs(allMatches)
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -63,18 +65,18 @@ export default async function Home() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(match) }}
         />
       ))}
-      <Header />
-      <main className="flex-1">
-        <FavoriteClubProvider>
+      <FavoriteClubProvider>
+        <Header clubs={clubs} />
+        <main className="flex-1">
           <TodayHighlight matches={allMatches} />
-          <ClubPicker matches={allMatches} />
+          <FavoriteNextMatch matches={allMatches} clubs={clubs} />
           <MatchSchedule matchweeks={matchweeks} />
           <Results matchweeks={matchweeks} />
           <Standings standings={standings} season={standingsSeason} />
           <TopScorers topScorers={topScorers} topAssisters={topAssisters} season={leadersSeason} />
           <Providers />
-        </FavoriteClubProvider>
-      </main>
+        </main>
+      </FavoriteClubProvider>
       <footer className="border-t border-border bg-card py-10">
         <div className="mx-auto max-w-5xl px-4">
           <div className="flex flex-col items-center gap-6 text-center">

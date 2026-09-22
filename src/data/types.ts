@@ -30,6 +30,7 @@ export type Match = {
 
 export type Matchweek = {
   number: number
+  label: string // e.g. "vr 18 – zo 20 september"
   matches: Match[]
 }
 

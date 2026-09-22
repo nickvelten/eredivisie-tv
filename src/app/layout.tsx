@@ -44,6 +44,10 @@ export const metadata: Metadata = {
       follow: true,
     },
   },
+  // Google Search Console: HTML-tag verification, set GOOGLE_SITE_VERIFICATION on Vercel
+  verification: process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : undefined,
 }
 
 export default function RootLayout({
