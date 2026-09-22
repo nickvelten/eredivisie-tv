@@ -19,11 +19,14 @@ export function MatchCalendarButton({ matchId }: { matchId: string }) {
   )
 }
 
-export function ClubCalendarButton({ slug, clubName }: { slug: string; clubName: string }) {
+export function ClubCalendarButton({ slug, clubName, onHero = false }: { slug: string; clubName: string; onHero?: boolean }) {
   // webcal:// opens the feed as a subscription in Apple/Outlook; Google Calendar users paste the https URL
   const feed = `${SITE_URL}/api/ics/club/${slug}`
+  const cls = onHero
+    ? 'inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-inherit ring-1 ring-white/40 backdrop-blur-sm transition-all hover:bg-white/25'
+    : buttonClass
   return (
-    <a href={feed.replace(/^https:/, 'webcal:')} className={buttonClass} title={`Abonneer op alle wedstrijden van ${clubName}`}>
+    <a href={feed.replace(/^https:/, 'webcal:')} className={cls} title={`Abonneer op alle wedstrijden van ${clubName}`}>
       <CalendarIcon /> Agenda-abonnement
     </a>
   )

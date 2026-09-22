@@ -4,6 +4,8 @@ import { Club } from '@/data/types'
 import { ThemeToggle } from './ThemeToggle'
 import { ClubMenu } from './ClubMenu'
 import { NavLinks, NavItem } from './NavLinks'
+import { FavoriteClubLink } from './FavoriteClubLink'
+import { HeaderOffset } from './HeaderOffset'
 
 const sectionItems: NavItem[] = [
   { label: 'Vandaag', href: '#vandaag' },
@@ -41,7 +43,8 @@ export function Header({ clubs = [], showSections = true }: { clubs?: Club[]; sh
         </div>
       </div>
       <div className="border-t border-border">
-        <div className="mx-auto flex max-w-5xl items-center px-2 sm:px-3">
+        <div className="mx-auto flex max-w-5xl items-center gap-1 px-2 sm:px-3">
+          <FavoriteClubLink />
           {showSections ? (
             <NavLinks items={sectionItems} />
           ) : (
@@ -56,6 +59,7 @@ export function Header({ clubs = [], showSections = true }: { clubs?: Club[]; sh
           )}
         </div>
       </div>
+      <HeaderOffset />
     </header>
   )
 }

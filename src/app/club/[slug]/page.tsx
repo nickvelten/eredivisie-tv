@@ -9,6 +9,8 @@ import { ClubCalendarButton } from '@/components/CalendarButtons'
 import { SetFavoriteButton } from '@/components/SetFavoriteButton'
 import { matchStructuredData, SITE_URL } from '@/lib/structured-data'
 import { FormResult } from '@/data/types'
+import { clubTheme } from '@/lib/color'
+import type { CSSProperties } from 'react'
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -46,6 +48,9 @@ export default async function ClubPage({ params }: Params) {
   const played = clubMatches.filter((m) => m.status === 'finished').reverse()
   const standing = data.standings.find((s) => s.club.id === club.id)
   const nextMatch = upcoming[0]
+  const theme = clubTheme(club.color)
+  // Re-tint the page accent in the club colour (header keeps the site red)
+  const pageStyle = { '--accent': theme.accent, '--accent-light': theme.accentLight, '--club-color': theme.base } as CSSProperties
 
   const jsonLd = [
     {
@@ -64,30 +69,48 @@ export default async function ClubPage({ params }: Params) {
     <PageShell data={data}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <section className="mx-auto w-full max-w-5xl px-4 pb-4 pt-10">
-        <div className="flex flex-col gap-6 rounded-2xl bg-card p-6 shadow-sm ring-1 ring-border sm:flex-row sm:items-center">
-          <Image src={club.logo} alt={club.name} width={96} height={96} className="h-20 w-20 sm:h-24 sm:w-24" />
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold uppercase tracking-widest text-accent">Eredivisie {data.standingsSeason?.label ?? ''}</p>
-            <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">{club.name}</h1>
-            {standing && (
-              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
-                <span><span className="text-lg font-extrabold text-foreground">{standing.position}e</span> in de stand</span>
-                <span><span className="text-lg font-extrabold text-foreground">{standing.points}</span> punten</span>
-                <span>{standing.won}W · {standing.drawn}G · {standing.lost}V</span>
-                {standing.form && standing.form.length > 0 && (
-                  <span className="flex items-center gap-1" aria-label="Vorm">
-                    {standing.form.map((r, i) => (
-                      <span key={i} className={`inline-block h-5 w-5 rounded-full text-center text-[10px] font-bold leading-5 text-white ${formColors[r]}`}>{r}</span>
-                    ))}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <SetFavoriteButton clubId={club.id} />
-            <ClubCalendarButton slug={club.slug} clubName={club.name} />
+      <div style={pageStyle}>
+      <section className="mx-auto w-full max-w-5xl px-4 pb-4 pt-6 sm:pt-10">
+        <div
+          className="relative overflow-hidden rounded-2xl p-6 shadow-md sm:p-8"
+          style={{ background: `linear-gradient(135deg, ${theme.heroFrom} 0%, ${theme.heroTo} 100%)`, color: theme.onHero }}
+        >
+          <Image
+            src={club.logo}
+            alt=""
+            width={320}
+            height={320}
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-10 -top-10 h-64 w-64 opacity-10 blur-[1px] sm:h-80 sm:w-80"
+          />
+          <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
+            <span className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-white p-3 shadow-lg ring-4 ring-white/30 sm:h-28 sm:w-28">
+              <Image src={club.logo} alt={club.name} width={96} height={96} className="h-full w-full object-contain" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: theme.onHeroMuted }}>
+                Eredivisie {data.standingsSeason?.label ?? ''}
+              </p>
+              <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">{club.name}</h1>
+              {standing && (
+                <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm" style={{ color: theme.onHeroMuted }}>
+                  <span><span className="text-lg font-extrabold" style={{ color: theme.onHero }}>{standing.position}e</span> in de stand</span>
+                  <span><span className="text-lg font-extrabold" style={{ color: theme.onHero }}>{standing.points}</span> punten</span>
+                  <span>{standing.won}W · {standing.drawn}G · {standing.lost}V</span>
+                  {standing.form && standing.form.length > 0 && (
+                    <span className="flex items-center gap-1" aria-label="Vorm">
+                      {standing.form.map((r, i) => (
+                        <span key={i} className={`inline-block h-5 w-5 rounded-full text-center text-[10px] font-bold leading-5 text-white ${formColors[r]}`}>{r}</span>
+                      ))}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <SetFavoriteButton clubId={club.id} />
+              <ClubCalendarButton slug={club.slug} clubName={club.name} onHero />
+            </div>
           </div>
         </div>
       </section>
@@ -131,6 +154,7 @@ export default async function ClubPage({ params }: Params) {
           <p className="text-sm text-muted">Nog geen wedstrijden van {club.name} in het programma.</p>
         </section>
       )}
+      </div>
     </PageShell>
   )
 }

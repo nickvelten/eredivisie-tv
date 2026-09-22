@@ -12,8 +12,8 @@ export function SetFavoriteButton({ clubId }: { clubId: string }) {
       aria-pressed={selected}
       className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition-all ${
         selected
-          ? 'bg-accent text-white hover:bg-accent/90'
-          : 'bg-card text-foreground ring-1 ring-border hover:text-accent hover:ring-accent/40'
+          ? 'bg-white text-accent ring-2 ring-white/60 hover:bg-white/90'
+          : 'bg-white/15 text-inherit ring-1 ring-white/40 backdrop-blur-sm hover:bg-white/25'
       }`}
     >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">

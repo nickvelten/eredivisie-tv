@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { headerOffset } from './HeaderOffset'
 
 export type NavItem = { label: string; href: string }
-
-const HEADER_OFFSET = 130 // sticky header height plus a little breathing room
 
 function useActiveSection(ids: string[]): string | null {
   const [active, setActive] = useState<string | null>(null)
@@ -14,10 +13,11 @@ function useActiveSection(ids: string[]): string | null {
 
     function update() {
       raf = 0
+      const offset = headerOffset() + 16
       let current: string | null = null
       for (const id of ids) {
         const el = document.getElementById(id)
-        if (el && el.getBoundingClientRect().top - HEADER_OFFSET <= 0) current = id
+        if (el && el.getBoundingClientRect().top - offset <= 0) current = id
       }
       const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2
       if (atBottom) current = ids[ids.length - 1] ?? current
@@ -46,11 +46,18 @@ export function NavLinks({ items }: { items: NavItem[] }) {
   const active = useActiveSection(ids)
   const navRef = useRef<HTMLElement>(null)
 
-  // Keep the active pill visible when the nav scrolls horizontally (mobile)
+  // Keep the active pill visible when the nav scrolls horizontally (mobile).
+  // Scroll the nav container itself; scrollIntoView would interrupt an
+  // in-progress smooth scroll of the page after an anchor click.
   useEffect(() => {
-    if (!active) return
-    const link = navRef.current?.querySelector<HTMLAnchorElement>(`a[href="#${active}"]`)
-    link?.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' })
+    const nav = navRef.current
+    if (!active || !nav) return
+    const link = nav.querySelector<HTMLAnchorElement>(`a[href="#${active}"]`)
+    if (!link) return
+    const left = link.offsetLeft - nav.offsetLeft
+    const right = left + link.offsetWidth
+    if (left < nav.scrollLeft) nav.scrollTo({ left: left - 8, behavior: 'smooth' })
+    else if (right > nav.scrollLeft + nav.clientWidth) nav.scrollTo({ left: right - nav.clientWidth + 8, behavior: 'smooth' })
   }, [active])
 
   return (
