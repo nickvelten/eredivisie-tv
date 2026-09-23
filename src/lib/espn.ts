@@ -1,5 +1,6 @@
 import { Match, MatchEvent, Matchweek, StandingEntry, Odds, TopScorer, TopAssister, FormResult, SeasonInfo, EredivisieData, Club } from '@/data/types'
 import { formatDateRange } from '@/lib/utils'
+import { luminance } from '@/lib/color'
 
 const ESPN_API = 'https://site.api.espn.com/apis'
 const LEAGUE = 'ned.1'
@@ -15,6 +16,7 @@ interface ESPNTeam {
   shortDisplayName?: string
   abbreviation: string
   color?: string
+  alternateColor?: string
   logo?: string
   logos?: Array<{ href: string }>
 }
@@ -263,6 +265,24 @@ function getTeamLogo(team: ESPNTeam): string {
   return `https://a.espncdn.com/i/teamlogos/soccer/500/${team.id}.png`
 }
 
+// ESPN's colours are off for a few clubs; these take precedence.
+const CLUB_COLOR_OVERRIDES: Record<string, string> = {
+  'fc-groningen': '00a651', // ESPN: white / teal
+  excelsior: 'b41226', // ESPN: black
+}
+
+// ESPN lists the shirt colour first; for clubs in white (FC Groningen, Ajax's
+// away kit) that is useless for theming, so fall back to the alternate colour.
+function pickClubColor(team: ESPNTeam): string | undefined {
+  const override = CLUB_COLOR_OVERRIDES[slugify(team.displayName)]
+  if (override) return override
+  const primary = team.color?.replace('#', '')
+  const alternate = team.alternateColor?.replace('#', '')
+  if (primary && luminance(primary) <= 0.8) return primary
+  if (alternate && luminance(alternate) <= 0.8) return alternate
+  return primary
+}
+
 function transformClub(team: ESPNTeam): Club {
   return {
     id: team.id,
@@ -270,7 +290,7 @@ function transformClub(team: ESPNTeam): Club {
     name: team.displayName,
     shortName: team.shortDisplayName ?? team.abbreviation,
     logo: getTeamLogo(team),
-    color: team.color,
+    color: pickClubColor(team),
   }
 }
 
