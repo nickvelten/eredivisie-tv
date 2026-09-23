@@ -51,9 +51,13 @@ export function clubTheme(color?: string) {
   while (luminance(accent) > 0.35) accent = darken(accent, 0.15)
   // Some clubs are near-white (e.g. white shirts): fall back to a neutral dark
   if (lum > 0.85) accent = '#1a1a2e'
+  // Accent for dark mode: lighten until it reads on a near-black background
+  let accentDark = base
+  while (luminance(accentDark) < 0.25) accentDark = lighten(accentDark, 0.15)
   return {
     base,
     accent,
+    accentDark,
     accentLight: `color-mix(in srgb, ${accent} 12%, transparent)`,
     heroFrom: base,
     heroTo: darken(base, 0.35),

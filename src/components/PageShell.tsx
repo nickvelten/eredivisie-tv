@@ -5,6 +5,7 @@ import { FavoriteClubProvider, FAVORITE_COOKIE } from '@/lib/favorite-club'
 import { Header } from './Header'
 import { LiveBar } from './LiveBar'
 import { Footer } from './Footer'
+import { SiteNotices } from './SiteNotices'
 
 /**
  * Shared chrome for every page: reads the favourite-club cookie on the server
@@ -28,7 +29,10 @@ export async function PageShell({
     <FavoriteClubProvider clubs={data.clubs} initialFavoriteId={initialFavoriteId}>
       <Header clubs={data.clubs} showSections={showSections} />
       <LiveBar matches={data.allMatches} />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">
+        {children}
+        <SiteNotices />
+      </main>
       <Footer />
     </FavoriteClubProvider>
   )

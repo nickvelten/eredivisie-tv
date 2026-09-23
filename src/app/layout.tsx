@@ -1,6 +1,11 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
+import { cookies } from 'next/headers'
+import type { CSSProperties } from 'react'
+import { fetchEredivisieData } from '@/lib/espn'
+import { FAVORITE_COOKIE } from '@/lib/favorite-club'
+import { clubTheme } from '@/lib/color'
 import './globals.css'
 
 const geistSans = Geist({
@@ -50,13 +55,33 @@ export const metadata: Metadata = {
     : undefined,
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Apply the favourite club's colours on the very first paint. The cookie
+  // holds the club id; the (cached) ESPN data supplies slug and colour.
+  const favoriteCookie = (await cookies()).get(FAVORITE_COOKIE)?.value ?? null
+  const club = favoriteCookie ? (await fetchEredivisieData()).clubs.find((c) => c.id === favoriteCookie) : undefined
+  const theme = club ? clubTheme(club.color) : null
+  const clubStyle = theme
+    ? ({
+        '--club-color': theme.base,
+        '--club-on': theme.onHero,
+        '--club-accent': theme.accent,
+        '--club-accent-dark': theme.accentDark,
+      } as CSSProperties)
+    : undefined
+
   return (
-    <html lang="nl" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`} suppressHydrationWarning>
+    <html
+      lang="nl"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      data-club={club?.slug}
+      style={clubStyle}
+      suppressHydrationWarning
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{

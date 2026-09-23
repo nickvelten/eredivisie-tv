@@ -6,6 +6,7 @@ import { ClubMenu } from './ClubMenu'
 import { NavLinks, NavItem } from './NavLinks'
 import { FavoriteClubLink } from './FavoriteClubLink'
 import { HeaderOffset } from './HeaderOffset'
+import { FeedbackButton } from './SiteNotices'
 
 const sectionItems: NavItem[] = [
   { label: 'Vandaag', href: '#vandaag' },
@@ -39,6 +40,7 @@ export function Header({ clubs = [], showSections = true }: { clubs?: Club[]; sh
         </Link>
         <div className="flex items-center gap-1">
           <ClubMenu clubs={clubs} />
+          <FeedbackButton />
           <ThemeToggle />
         </div>
       </div>

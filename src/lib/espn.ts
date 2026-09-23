@@ -85,6 +85,7 @@ interface ESPNLeaderEntry {
   displayValue: string
   value: number
   athlete: ESPNLeaderAthlete
+  team?: ESPNTeam
 }
 
 interface ESPNLeadersResponse {
@@ -367,6 +368,7 @@ function transformLeaders(data: ESPNLeadersResponse): { topScorers: TopScorer[];
       goals: Math.round(l.value),
       matches: matchesMatch ? parseInt(matchesMatch[1]) : 0,
       flag: l.athlete.flag?.href,
+      club: l.team ? transformClub(l.team) : undefined,
     }
   })
 
@@ -378,6 +380,7 @@ function transformLeaders(data: ESPNLeadersResponse): { topScorers: TopScorer[];
       assists: Math.round(l.value),
       matches: matchesMatch ? parseInt(matchesMatch[1]) : 0,
       flag: l.athlete.flag?.href,
+      club: l.team ? transformClub(l.team) : undefined,
     }
   })
 

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CONTACT_EMAIL, FOR_SALE_MAILTO } from './SiteNotices'
 
 export function Footer() {
   return (
@@ -14,9 +15,11 @@ export function Footer() {
             <Link href="/#stand" className="transition-colors hover:text-foreground">Stand</Link>
             <Link href="/#topscorers" className="transition-colors hover:text-foreground">Topscorers</Link>
             <Link href="/#providers" className="transition-colors hover:text-foreground">Providers</Link>
+            <a href={FOR_SALE_MAILTO} className="text-accent transition-colors hover:text-foreground">Website te koop</a>
           </nav>
           <div className="space-y-1.5 text-xs text-muted-light">
             <p>Niet officieel gelieerd aan de Eredivisie. Uitzendinformatie kan wijzigen; raadpleeg je provider.</p>
+            <p>Vragen, ideeën of interesse in overname: <a href={`mailto:${CONTACT_EMAIL}`} className="underline transition-colors hover:text-foreground">{CONTACT_EMAIL}</a></p>
             <p>18+ | Wat kost gokken jou? Stop op tijd. <a href="https://www.loketkansspel.nl" target="_blank" rel="noopener noreferrer" className="underline transition-colors hover:text-foreground">loketkansspel.nl</a></p>
           </div>
         </div>

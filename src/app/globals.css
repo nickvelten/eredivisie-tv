@@ -28,6 +28,43 @@
   --accent-light: rgba(239, 68, 68, 0.15);
 }
 
+/* Club theming: once a favourite club is chosen (html[data-club]), the
+   background takes a light tint of the club colour with a glow at the top,
+   and the accent follows the club colour. Variables are set by
+   FavoriteClubProvider. */
+html[data-club] {
+  --background: color-mix(in srgb, var(--club-color) 7%, #f8f9fa);
+  --card-hover: color-mix(in srgb, var(--club-color) 5%, #ffffff);
+  --accent: var(--club-accent);
+  --accent-light: color-mix(in srgb, var(--club-accent) 12%, transparent);
+  transition: background-color 0.4s ease;
+}
+
+html[data-club].dark {
+  --background: color-mix(in srgb, var(--club-color) 12%, #0f1117);
+  --card: color-mix(in srgb, var(--club-color) 6%, #1a1b23);
+  --card-hover: color-mix(in srgb, var(--club-color) 10%, #1a1b23);
+  --accent: var(--club-accent-dark);
+  --accent-light: color-mix(in srgb, var(--club-accent-dark) 16%, transparent);
+}
+
+html[data-club] body {
+  background-image: radial-gradient(
+    ellipse 90% 520px at 50% -120px,
+    color-mix(in srgb, var(--club-color) 28%, transparent),
+    transparent 70%
+  );
+  background-repeat: no-repeat;
+}
+
+html[data-club].dark body {
+  background-image: radial-gradient(
+    ellipse 90% 520px at 50% -120px,
+    color-mix(in srgb, var(--club-color) 35%, transparent),
+    transparent 70%
+  );
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -44,6 +81,7 @@
 
 html {
   scroll-behavior: smooth;
+  background: var(--background);
   /* Keep anchor targets clear of the sticky header. --header-h is measured
      at runtime (see HeaderOffset); the fallback covers the first paint. */
   scroll-padding-top: calc(var(--header-h, 7.75rem) + 0.5rem);

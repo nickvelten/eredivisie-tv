@@ -71,6 +71,7 @@ export type TopScorer = {
   goals: number
   matches: number
   flag?: string
+  club?: Club
 }
 
 export type TopAssister = {
@@ -79,6 +80,7 @@ export type TopAssister = {
   assists: number
   matches: number
   flag?: string
+  club?: Club
 }
 
 export type SeasonInfo = {

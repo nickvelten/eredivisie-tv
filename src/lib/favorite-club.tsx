@@ -57,9 +57,12 @@ export function FavoriteClubProvider({
       const theme = clubTheme(favorite.color)
       root.style.setProperty('--club-color', theme.base)
       root.style.setProperty('--club-on', theme.onHero)
+      root.style.setProperty('--club-accent', theme.accent)
+      root.style.setProperty('--club-accent-dark', theme.accentDark)
+      root.dataset.club = favorite.slug
     } else {
-      root.style.removeProperty('--club-color')
-      root.style.removeProperty('--club-on')
+      for (const v of ['--club-color', '--club-on', '--club-accent', '--club-accent-dark']) root.style.removeProperty(v)
+      delete root.dataset.club
     }
   }, [favorite])
 
@@ -106,7 +109,7 @@ function FavoriteToast({ club, onClose }: { club: Club; onClose: () => void }) {
       <div className="min-w-0 flex-1">
         <p className="text-sm font-extrabold leading-tight">{club.name} is nu jouw club</p>
         <p className="text-xs leading-snug" style={{ color: theme.onHeroMuted }}>
-          De site kleurt mee en wedstrijden van {club.shortName} worden overal uitgelicht.
+          De hele site kleurt nu mee en wedstrijden van {club.shortName} worden overal uitgelicht.
         </p>
       </div>
       <button
