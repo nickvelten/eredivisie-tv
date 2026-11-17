@@ -71,7 +71,9 @@ test('links start the new page at the top', async ({ page }) => {
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
   await page.locator('footer a[href^="/club/"]').first().click()
   await page.waitForURL(/\/club\//)
-  expect(await page.evaluate(() => window.scrollY)).toBe(0)
+  // The URL changes before the new page has rendered; wait for the reset
+  await expect(page.locator('h1')).toContainText('op TV')
+  await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 }).toBe(0)
 })
 
 test('sitemaps and robots', async ({ request }) => {
