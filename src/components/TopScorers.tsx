@@ -28,10 +28,17 @@ export function TopScorers({
   topScorers,
   topAssisters,
   season,
+  playerSlugs = {},
+  title = 'Topscorers',
+  as: Heading = 'h2',
 }: {
   topScorers: TopScorer[]
   topAssisters: TopAssister[]
   season?: SeasonInfo | null
+  /** ESPN athlete id -> player page slug */
+  playerSlugs?: Record<string, string>
+  title?: string
+  as?: 'h1' | 'h2'
 }) {
   const [tab, setTab] = useState<Tab>('goals')
 
@@ -39,13 +46,13 @@ export function TopScorers({
 
   const rows =
     tab === 'goals'
-      ? topScorers.map((s) => ({ position: s.position, name: s.name, flag: s.flag, matches: s.matches, value: s.goals, club: s.club }))
-      : topAssisters.map((a) => ({ position: a.position, name: a.name, flag: a.flag, matches: a.matches, value: a.assists, club: a.club }))
+      ? topScorers.map((s) => ({ position: s.position, playerId: s.playerId, name: s.name, flag: s.flag, matches: s.matches, value: s.goals, club: s.club }))
+      : topAssisters.map((a) => ({ position: a.position, playerId: a.playerId, name: a.name, flag: a.flag, matches: a.matches, value: a.assists, club: a.club }))
 
   return (
-    <section id="topscorers" className="mx-auto w-full max-w-5xl px-4 py-10">
+    <section id="topscorers" className="w-full py-10">
       <div className={`flex flex-wrap items-center gap-3 ${season && !season.isCurrent ? 'mb-2' : 'mb-6'}`}>
-        <h2 className="text-2xl font-extrabold text-foreground">Topscorers</h2>
+        <Heading className="text-2xl font-extrabold text-foreground">{title}</Heading>
         {season && (
           <span className="rounded-full bg-accent-light px-3 py-0.5 text-xs font-semibold text-accent">
             {season.isCurrent ? `Seizoen ${season.label}` : `Eindklassement ${season.label}`}
@@ -113,7 +120,11 @@ export function TopScorers({
                       />
                     )}
                     <div className="min-w-0">
-                      <span className="block font-semibold text-foreground">{row.name}</span>
+                      {row.playerId && playerSlugs[row.playerId] ? (
+                        <Link href={`/speler/${playerSlugs[row.playerId]}`} className="block font-semibold text-foreground hover:text-accent">{row.name}</Link>
+                      ) : (
+                        <span className="block font-semibold text-foreground">{row.name}</span>
+                      )}
                       {row.club && (
                         <Link href={`/club/${row.club.slug}`} className="mt-0.5 flex items-center gap-1.5 text-xs text-muted transition-colors hover:text-accent sm:hidden">
                           <Image src={row.club.logo} alt="" width={14} height={14} className="h-3.5 w-3.5" />

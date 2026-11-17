@@ -13,7 +13,7 @@ const buttonClass =
 
 export function MatchCalendarButton({ matchId }: { matchId: string }) {
   return (
-    <a href={`/api/ics/wedstrijd/${matchId}`} download className={buttonClass}>
+    <a href={`/api/ics/wedstrijd/${matchId}`} download className={buttonClass} data-event="calendar_add" data-event-label="wedstrijd">
       <CalendarIcon /> Zet in agenda
     </a>
   )
@@ -26,8 +26,24 @@ export function ClubCalendarButton({ slug, clubName, onHero = false }: { slug: s
     ? 'inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-inherit ring-1 ring-white/40 backdrop-blur-sm transition-all hover:bg-white/25'
     : buttonClass
   return (
-    <a href={feed.replace(/^https:/, 'webcal:')} className={cls} title={`Abonneer op alle wedstrijden van ${clubName}`}>
+    <a href={feed.replace(/^https:/, 'webcal:')} className={cls} title={`Abonneer op alle wedstrijden van ${clubName}`} data-event="calendar_add" data-event-label={`club:${slug}`}>
       <CalendarIcon /> Agenda-abonnement
     </a>
+  )
+}
+
+/** Whole-league feed: webcal for Apple/Outlook, plus a direct Google Calendar link. */
+export function LeagueCalendarButtons() {
+  const feed = `${SITE_URL}/api/ics/eredivisie`
+  const google = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(feed.replace(/^https:/, 'webcal:'))}`
+  return (
+    <div className="flex flex-wrap gap-2">
+      <a href={feed.replace(/^https:/, 'webcal:')} className={buttonClass} title="Abonneer op alle Eredivisie-wedstrijden" data-event="calendar_add" data-event-label="competitie">
+        <CalendarIcon /> Hele Eredivisie in je agenda
+      </a>
+      <a href={google} target="_blank" rel="noopener noreferrer" className={buttonClass} data-event="calendar_add" data-event-label="google">
+        <CalendarIcon /> Google Agenda
+      </a>
+    </div>
   )
 }

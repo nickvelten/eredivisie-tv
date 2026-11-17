@@ -3,7 +3,7 @@ import { providers } from '@/data/providers'
 
 export function Providers() {
   return (
-    <section id="providers" className="mx-auto w-full max-w-5xl px-4 py-10">
+    <section id="providers" className="w-full py-10">
       <h2 className="mb-2 text-2xl font-extrabold text-foreground">Waar kijk je de Eredivisie?</h2>
       <p className="mb-8 text-sm text-muted">
         ESPN is de officiële uitzender van de Eredivisie. Je kunt ESPN ontvangen via verschillende providers.

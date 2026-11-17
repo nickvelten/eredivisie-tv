@@ -70,3 +70,8 @@ export function clubCalendar(club: Club, matches: Match[]): string {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   return calendar(`${club.name} · Eredivisie`, clubMatches.map(matchEvent))
 }
+
+export function leagueCalendar(matches: Match[]): string {
+  const sorted = [...matches].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  return calendar('Eredivisie op TV', sorted.map(matchEvent))
+}

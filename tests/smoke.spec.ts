@@ -1,0 +1,81 @@
+import { expect, test } from '@playwright/test'
+
+// Every page type: loads, has exactly one h1, a canonical, and no console errors
+const PAGES = [
+  '/',
+  '/eredivisie-op-tv-vandaag',
+  '/eredivisie-op-tv-morgen',
+  '/programma',
+  '/uitslagen',
+  '/stand',
+  '/topscorers',
+  '/statistieken',
+  '/clubs',
+  '/club/ajax-amsterdam',
+  '/vergelijk',
+  '/eerste-divisie',
+  '/knvb-beker',
+  '/widget-insluiten',
+]
+
+for (const path of PAGES) {
+  test(`renders ${path}`, async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (e) => errors.push(e.message))
+    page.on('console', (m) => {
+      if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text())
+    })
+    const res = await page.goto(path)
+    expect(res?.status()).toBe(200)
+    await expect(page.locator('h1')).toHaveCount(1)
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(1)
+    expect(errors).toEqual([])
+  })
+}
+
+test('first match, player and duel pages work', async ({ page }) => {
+  const index = await (await page.request.get('/api/zoek-index')).json()
+  const match = index.find((i: { type: string }) => i.type === 'wedstrijd')
+  const player = index.find((i: { type: string }) => i.type === 'speler')
+  for (const href of [match.href, player.href, '/duel/ajax-feyenoord']) {
+    const res = await page.goto(href)
+    expect(res?.status(), href).toBe(200)
+    await expect(page.locator('h1')).toHaveCount(1)
+  }
+})
+
+test('old numeric match URLs redirect to the slug', async ({ request }) => {
+  const index = await (await request.get('/api/zoek-index')).json()
+  const match = index.find((i: { type: string }) => i.type === 'wedstrijd')
+  const id = match.href.match(/(\d+)$/)[1]
+  const res = await request.get(`/wedstrijd/${id}`, { maxRedirects: 0 })
+  expect(res.status()).toBe(308)
+  expect(res.headers().location).toContain(match.href)
+})
+
+test('unknown pages return 404 inside the site layout', async ({ page }) => {
+  const res = await page.goto('/bestaat-niet')
+  expect(res?.status()).toBe(404)
+  await expect(page.locator('header')).toBeVisible()
+})
+
+test('search finds a club', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Zoek club of speler' }).click()
+  await page.getByRole('combobox', { name: 'Zoeken' }).fill('feyenoord')
+  await expect(page.getByRole('option').first()).toContainText('Feyenoord')
+})
+
+test('links start the new page at the top', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+  await page.locator('footer a[href^="/club/"]').first().click()
+  await page.waitForURL(/\/club\//)
+  expect(await page.evaluate(() => window.scrollY)).toBe(0)
+})
+
+test('sitemaps and robots', async ({ request }) => {
+  for (const path of ['/sitemap.xml', '/speler/sitemap.xml', '/robots.txt']) {
+    expect((await request.get(path)).status(), path).toBe(200)
+  }
+})

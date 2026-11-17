@@ -24,11 +24,21 @@ function positionDot(pos: number): { color: string; label: string } | null {
   return null
 }
 
-export function Standings({ standings, season }: { standings: StandingEntry[]; season?: SeasonInfo | null }) {
+export function Standings({
+  standings,
+  season,
+  title = 'Eredivisie Stand',
+  as: Heading = 'h2',
+}: {
+  standings: StandingEntry[]
+  season?: SeasonInfo | null
+  title?: string
+  as?: 'h1' | 'h2'
+}) {
   if (standings.length === 0) {
     return (
-      <section id="stand" className="mx-auto w-full max-w-5xl px-4 py-10">
-        <h2 className="mb-4 text-2xl font-extrabold text-foreground">Eredivisie Stand</h2>
+      <section id="stand" className="w-full py-10">
+        <Heading className="mb-4 text-2xl font-extrabold text-foreground">{title}</Heading>
         <div className="rounded-xl border border-dashed border-border bg-card/50 px-5 py-8 text-center">
           <p className="text-sm font-semibold text-foreground">Stand tijdelijk niet beschikbaar</p>
           <p className="mt-1 text-sm text-muted">De standen van ESPN konden niet worden geladen. Probeer het over een paar minuten opnieuw.</p>
@@ -40,9 +50,9 @@ export function Standings({ standings, season }: { standings: StandingEntry[]; s
   const showForm = standings.some((entry) => entry.form && entry.form.length > 0)
 
   return (
-    <section id="stand" className="mx-auto w-full max-w-5xl px-4 py-10">
+    <section id="stand" className="w-full py-10">
       <div className={`flex flex-wrap items-center gap-3 ${season && !season.isCurrent ? 'mb-2' : 'mb-6'}`}>
-        <h2 className="text-2xl font-extrabold text-foreground">Eredivisie Stand</h2>
+        <Heading className="text-2xl font-extrabold text-foreground">{title}</Heading>
         {season && (
           <span className="rounded-full bg-accent-light px-3 py-0.5 text-xs font-semibold text-accent">
             {season.isCurrent ? `Seizoen ${season.label}` : `Eindstand ${season.label}`}
@@ -59,16 +69,16 @@ export function Standings({ standings, season }: { standings: StandingEntry[]; s
           <thead>
             <tr className="border-b-2 border-accent/10 text-left text-[11px] font-bold uppercase tracking-wider text-muted">
               <th className="w-12 px-3 py-3.5 sm:px-4">#</th>
-              <th className="px-4 py-3.5">Club</th>
-              <th className="px-4 py-3.5 text-center">GS</th>
-              <th className="px-4 py-3.5 text-center">W</th>
-              <th className="px-4 py-3.5 text-center">G</th>
-              <th className="px-4 py-3.5 text-center">V</th>
-              <th className="px-4 py-3.5 text-center hidden sm:table-cell">DV</th>
-              <th className="px-4 py-3.5 text-center hidden sm:table-cell">DT</th>
-              <th className="px-4 py-3.5 text-center hidden sm:table-cell">+/-</th>
-              <th className="px-4 py-3.5 text-center">Pt</th>
-              {showForm && <th className="px-4 py-3.5 text-center hidden md:table-cell">Vorm</th>}
+              <th className="px-2 py-3.5 sm:px-4">Club</th>
+              <th className="px-2 py-3.5 text-center sm:px-4">GS</th>
+              <th className="hidden px-4 py-3.5 text-center sm:table-cell">W</th>
+              <th className="hidden px-4 py-3.5 text-center sm:table-cell">G</th>
+              <th className="hidden px-4 py-3.5 text-center sm:table-cell">V</th>
+              <th className="px-4 py-3.5 text-center hidden md:table-cell">DV</th>
+              <th className="px-4 py-3.5 text-center hidden md:table-cell">DT</th>
+              <th className="px-2 py-3.5 text-center sm:px-4">+/-</th>
+              <th className="px-3 py-3.5 text-center sm:px-4">Pt</th>
+              {showForm && <th className="px-4 py-3.5 text-center hidden xl:table-cell">Vorm</th>}
             </tr>
           </thead>
           <tbody>
@@ -89,26 +99,26 @@ export function Standings({ standings, season }: { standings: StandingEntry[]; s
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 py-3 sm:px-4">
                     <Link href={`/club/${entry.club.slug}`} className="flex items-center gap-2.5 hover:text-accent">
                       <Image src={entry.club.logo} alt="" width={22} height={22} className="h-[22px] w-[22px] shrink-0" />
                       <span className="whitespace-nowrap font-semibold text-foreground sm:hidden">{entry.club.shortName}</span>
                       <span className="hidden whitespace-nowrap font-semibold text-foreground sm:inline">{entry.club.name}</span>
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-center text-muted">{entry.played}</td>
-                  <td className="px-4 py-3 text-center text-muted">{entry.won}</td>
-                  <td className="px-4 py-3 text-center text-muted">{entry.drawn}</td>
-                  <td className="px-4 py-3 text-center text-muted">{entry.lost}</td>
-                  <td className="px-4 py-3 text-center text-muted hidden sm:table-cell">{entry.goalsFor}</td>
-                  <td className="px-4 py-3 text-center text-muted hidden sm:table-cell">{entry.goalsAgainst}</td>
-                  <td className="px-4 py-3 text-center text-muted hidden sm:table-cell">
+                  <td className="px-2 py-3 text-center text-muted sm:px-4">{entry.played}</td>
+                  <td className="hidden px-4 py-3 text-center text-muted sm:table-cell">{entry.won}</td>
+                  <td className="hidden px-4 py-3 text-center text-muted sm:table-cell">{entry.drawn}</td>
+                  <td className="hidden px-4 py-3 text-center text-muted sm:table-cell">{entry.lost}</td>
+                  <td className="px-4 py-3 text-center text-muted hidden md:table-cell">{entry.goalsFor}</td>
+                  <td className="px-4 py-3 text-center text-muted hidden md:table-cell">{entry.goalsAgainst}</td>
+                  <td className="px-2 py-3 text-center tabular-nums text-muted sm:px-4">
                     {entry.goalsFor - entry.goalsAgainst > 0 ? '+' : ''}
                     {entry.goalsFor - entry.goalsAgainst}
                   </td>
-                  <td className="px-4 py-3 text-center text-base font-extrabold text-foreground">{entry.points}</td>
+                  <td className="px-3 py-3 text-center text-base font-extrabold text-foreground sm:px-4">{entry.points}</td>
                   {showForm && (
-                    <td className="px-4 py-3 hidden md:table-cell">
+                    <td className="px-4 py-3 hidden xl:table-cell">
                       {entry.form && entry.form.length > 0 && (
                         <div className="flex items-center justify-center gap-1">
                           {entry.form.map((result, i) => (

@@ -1,20 +1,38 @@
+import Image from 'next/image'
 import Link from 'next/link'
+import { Club } from '@/data/types'
 import { CONTACT_EMAIL, FOR_SALE_MAILTO } from './SiteNotices'
+import { NAV_ITEMS } from './Header'
 
-export function Footer() {
+export function Footer({ clubs = [] }: { clubs?: Club[] }) {
   return (
     <footer className="border-t border-border bg-card py-10">
-      <div className="mx-auto max-w-5xl px-4">
-        <div className="flex flex-col items-center gap-6 text-center">
+      <div className="mx-auto max-w-7xl px-4 sm:px-5">
+        {clubs.length > 0 && (
+          <nav aria-label="Clubs" className="mb-10">
+            <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted">Eredivisie-clubs op TV</h2>
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 lg:grid-cols-6">
+              {clubs.map((club) => (
+                <li key={club.id}>
+                  <Link href={`/club/${club.slug}`} className="flex items-center gap-2 text-sm text-muted transition-colors hover:text-accent">
+                    <Image src={club.logo} alt="" width={16} height={16} className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{club.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+        <div className="flex flex-col items-center gap-6 border-t border-border pt-8 text-center">
           <p className="text-base font-extrabold tracking-tight text-foreground">
             eredivisie<span className="text-accent">.tv</span>
           </p>
-          <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium text-muted">
-            <Link href="/#vandaag" className="transition-colors hover:text-foreground">Vandaag</Link>
-            <Link href="/#programma" className="transition-colors hover:text-foreground">Programma</Link>
-            <Link href="/#stand" className="transition-colors hover:text-foreground">Stand</Link>
-            <Link href="/#topscorers" className="transition-colors hover:text-foreground">Topscorers</Link>
-            <Link href="/#providers" className="transition-colors hover:text-foreground">Providers</Link>
+          <nav aria-label="Footer" className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium text-muted">
+            {NAV_ITEMS.filter((item) => item.href !== '/').map((item) => (
+              <Link key={item.href} href={item.href} className="transition-colors hover:text-foreground">{item.label}</Link>
+            ))}
+            <Link href="/widget-insluiten" className="transition-colors hover:text-foreground">Widget</Link>
+            <Link href="/vergelijk" className="transition-colors hover:text-foreground">Vergelijken</Link>
             <a href={FOR_SALE_MAILTO} className="text-accent transition-colors hover:text-foreground">Website te koop</a>
           </nav>
           <div className="space-y-1.5 text-xs text-muted-light">

@@ -37,7 +37,7 @@ export function TodayHighlight({ matches, standings }: { matches: Match[]; stand
 
   if (displayMatches.length === 0) {
     return (
-      <section id="vandaag" className="mx-auto w-full max-w-5xl px-4 py-10">
+      <section id="vandaag" className="w-full py-10">
         <h2 className="mb-4 text-2xl font-extrabold text-foreground">Vandaag</h2>
         <div className="rounded-xl border border-dashed border-border bg-card/50 px-5 py-8 text-center">
           <p className="text-sm font-semibold text-foreground">Geen wedstrijden in de planning</p>
@@ -60,7 +60,7 @@ export function TodayHighlight({ matches, standings }: { matches: Match[]; stand
     .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0]
 
   return (
-    <section id="vandaag" className="mx-auto w-full max-w-5xl px-4 py-10">
+    <section id="vandaag" className="w-full py-10">
       <div className="mb-5 flex flex-wrap items-end gap-3">
         <h2 className="text-2xl font-extrabold text-foreground">{title}</h2>
         {subtitle && (

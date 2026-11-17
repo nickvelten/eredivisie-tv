@@ -46,9 +46,10 @@ export function lighten(hex: string, amount: number): string {
 export function clubTheme(color?: string) {
   const base = color && hexToRgb(color) ? `#${color.replace('#', '')}` : '#e01e36'
   const lum = luminance(base)
-  // Accent used for text/labels on the page: darken very light colours
+  // Accent used for text/labels on the page: dark enough for WCAG AA (4.5:1)
+  // on white and on its own 12% tint
   let accent = base
-  while (luminance(accent) > 0.35) accent = darken(accent, 0.15)
+  while (luminance(accent) > 0.13) accent = darken(accent, 0.1)
   // Some clubs are near-white (e.g. white shirts): fall back to a neutral dark
   if (lum > 0.85) accent = '#1a1a2e'
   // Accent for dark mode: lighten until it reads on a near-black background

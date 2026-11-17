@@ -43,6 +43,7 @@ export function ClubMenu({ clubs }: { clubs: Club[] }) {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={panelId}
+        aria-label={favorite ? `${favorite.name}, mijn club wijzigen` : 'Mijn club kiezen'}
         className={`flex items-center gap-2 rounded-lg py-2 pl-2.5 pr-3 text-sm font-medium transition-colors ${
           favorite
             ? 'bg-(--club-color)/12 text-foreground ring-1 ring-(--club-color)/40'
@@ -56,10 +57,10 @@ export function ClubMenu({ clubs }: { clubs: Club[] }) {
             <path d="M9.653 16.915l-.005-.003-.019-.01a20.759 20.759 0 01-1.162-.682 22.045 22.045 0 01-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 018-2.828A4.5 4.5 0 0118 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 01-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 01-.69.001l-.002-.001z" />
           </svg>
         )}
-        <span className={`max-w-[9rem] truncate ${favorite ? 'hidden sm:inline' : ''}`}>
+        <span className="hidden max-w-[9rem] truncate sm:inline">
           {favorite ? favorite.name : 'Mijn club'}
         </span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`hidden h-4 w-4 transition-transform sm:block ${open ? 'rotate-180' : ''}`} aria-hidden="true">
           <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
         </svg>
       </button>

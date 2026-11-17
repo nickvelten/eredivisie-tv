@@ -79,6 +79,7 @@ interface ESPNScoreboardResponse {
 
 interface ESPNLeaderAthlete {
   id: string
+  slug?: string
   displayName: string
   flag?: { href: string; alt: string }
 }
@@ -139,8 +140,8 @@ function monthsBetween(from: Date, to: Date): string[] {
   return months
 }
 
-async function fetchScoreboardMonth(month: string): Promise<ESPNEvent[]> {
-  const url = `${ESPN_API}/site/v2/sports/soccer/${LEAGUE}/scoreboard?dates=${month}&limit=200`
+async function fetchScoreboardMonth(month: string, league: string = LEAGUE): Promise<ESPNEvent[]> {
+  const url = `${ESPN_API}/site/v2/sports/soccer/${league}/scoreboard?dates=${month}&limit=200`
   const isPast = month < monthParam(new Date())
   try {
     const res = await fetch(url, { next: { revalidate: isPast ? REVALIDATE_PAST : REVALIDATE_LIVE } })
@@ -156,8 +157,8 @@ async function fetchScoreboardMonth(month: string): Promise<ESPNEvent[]> {
   }
 }
 
-async function fetchEventsBetween(from: Date, to: Date): Promise<ESPNEvent[]> {
-  const perMonth = await Promise.all(monthsBetween(from, to).map(fetchScoreboardMonth))
+async function fetchEventsBetween(from: Date, to: Date, league: string = LEAGUE): Promise<ESPNEvent[]> {
+  const perMonth = await Promise.all(monthsBetween(from, to).map((m) => fetchScoreboardMonth(m, league)))
   const seen = new Set<string>()
   const events: ESPNEvent[] = []
   for (const event of perMonth.flat()) {
@@ -223,6 +224,16 @@ export function slugify(name: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
+/** Short, readable club slug for match and duel URLs, e.g. "ajax", "go-ahead-eagles". */
+export function clubKey(club: Club): string {
+  return slugify(club.shortName)
+}
+
+/** Readable, stable match slug: "ajax-feyenoord-401875655". The id keeps it stable when a match is rescheduled. */
+export function matchSlug(home: Club, away: Club, id: string): string {
+  return `${clubKey(home)}-${clubKey(away)}-${id}`
+}
+
 export function uniqueClubs(matches: Match[]): Club[] {
   const map = new Map<string, Club>()
   for (const m of matches) {
@@ -262,7 +273,8 @@ function extractOdds(comp: ESPNEvent['competitions'][0]): Odds | undefined {
 function getTeamLogo(team: ESPNTeam): string {
   if (team.logo) return team.logo
   if (team.logos?.[0]?.href) return team.logos[0].href
-  return `https://a.espncdn.com/i/teamlogos/soccer/500/${team.id}.png`
+  // Amateur clubs (cup rounds) have no ESPN logo; a constructed URL would 404
+  return '/club-placeholder.svg'
 }
 
 // ESPN's colours are off for a few clubs; these take precedence.
@@ -283,12 +295,24 @@ function pickClubColor(team: ESPNTeam): string | undefined {
   return primary
 }
 
+// ESPN's display names carry English-style city suffixes ("Ajax Amsterdam",
+// "PSV Eindhoven"). Dutch fans use the plain club name. The slug keeps the
+// ESPN name so already indexed URLs stay valid.
+const CLUB_NAME_OVERRIDES: Record<string, string> = {
+  '139': 'Ajax',
+  '140': 'AZ',
+  '142': 'Feyenoord',
+  '147': 'NEC',
+  '148': 'PSV',
+}
+
 function transformClub(team: ESPNTeam): Club {
+  const name = CLUB_NAME_OVERRIDES[team.id] ?? team.displayName
   return {
     id: team.id,
     slug: slugify(team.displayName),
-    name: team.displayName,
-    shortName: team.shortDisplayName ?? team.abbreviation,
+    name,
+    shortName: CLUB_NAME_OVERRIDES[team.id] ?? team.shortDisplayName ?? team.abbreviation,
     logo: getTeamLogo(team),
     color: pickClubColor(team),
   }
@@ -327,10 +351,13 @@ function transformEvent(event: ESPNEvent): Match {
     status = 'live'
   }
 
+  const homeTeam = transformClub(home.team)
+  const awayTeam = transformClub(away.team)
   return {
     id: event.id,
-    homeTeam: transformClub(home.team),
-    awayTeam: transformClub(away.team),
+    slug: matchSlug(homeTeam, awayTeam, event.id),
+    homeTeam,
+    awayTeam,
     date: event.date,
     status,
     clock: status === 'live' ? comp.status.displayClock : undefined,
@@ -384,6 +411,7 @@ function transformLeaders(data: ESPNLeadersResponse): { topScorers: TopScorer[];
     const matchesMatch = l.displayValue.match(/Matches:\s*(\d+)/)
     return {
       position: i + 1,
+      playerId: l.athlete.id,
       name: l.athlete.displayName,
       goals: Math.round(l.value),
       matches: matchesMatch ? parseInt(matchesMatch[1]) : 0,
@@ -396,6 +424,7 @@ function transformLeaders(data: ESPNLeadersResponse): { topScorers: TopScorer[];
     const matchesMatch = l.displayValue.match(/Matches:\s*(\d+)/)
     return {
       position: i + 1,
+      playerId: l.athlete.id,
       name: l.athlete.displayName,
       assists: Math.round(l.value),
       matches: matchesMatch ? parseInt(matchesMatch[1]) : 0,
@@ -409,7 +438,7 @@ function transformLeaders(data: ESPNLeadersResponse): { topScorers: TopScorer[];
 
 // --- Season helpers ---
 
-function seasonLabel(year: number): string {
+export function seasonLabel(year: number): string {
   return `${year}/${String(year + 1).slice(2)}`
 }
 
@@ -595,8 +624,186 @@ export async function findClubBySlug(slug: string): Promise<{ club: Club; data: 
   return club ? { club, data } : null
 }
 
-export async function findMatchById(id: string): Promise<{ match: Match; data: EredivisieData } | null> {
+/**
+ * Finds a match by its slug, or by the bare ESPN id used in older URLs.
+ * Falls back to the season archive, so results from earlier seasons get a page too.
+ */
+export async function findMatch(slugOrId: string): Promise<{ match: Match; data: EredivisieData; archived: boolean } | null> {
   const data = await fetchEredivisieData()
-  const match = data.allMatches.find((m) => m.id === id)
-  return match ? { match, data } : null
+  const id = slugOrId.match(/(\d+)$/)?.[1]
+  const current = data.allMatches.find((m) => m.slug === slugOrId) ?? (id ? data.allMatches.find((m) => m.id === id) : undefined)
+  if (current) return { match: current, data, archived: false }
+  if (!id) return null
+  for (const option of await seasonOptions()) {
+    if (option.isCurrent) continue
+    const archive = await fetchSeasonArchive(option.year)
+    const match = archive?.matchweeks.flatMap((w) => w.matches).find((m) => m.id === id)
+    if (match) return { match, data, archived: true }
+  }
+  return null
+}
+
+export async function findClubByKey(key: string): Promise<Club | null> {
+  const data = await fetchEredivisieData()
+  return data.clubs.find((c) => clubKey(c) === key) ?? null
+}
+
+// --- Duels (club vs club pages) ---
+
+/** Order-independent duel slug: "ajax-feyenoord" for both Ajax–Feyenoord and Feyenoord–Ajax. */
+export function duelSlug(a: Club, b: Club): string {
+  return [clubKey(a), clubKey(b)].sort().join('-')
+}
+
+export async function findDuel(slug: string): Promise<{ clubs: [Club, Club]; data: EredivisieData } | null> {
+  const data = await fetchEredivisieData()
+  for (const a of data.clubs) {
+    for (const b of data.clubs) {
+      if (a.id < b.id && duelSlug(a, b) === slug) {
+        // Present the duel in alphabetical order, matching the slug
+        const pair: [Club, Club] = clubKey(a) < clubKey(b) ? [a, b] : [b, a]
+        return { clubs: pair, data }
+      }
+    }
+  }
+  return null
+}
+
+// --- Season archive (previous seasons) ---
+
+/** How many completed seasons the archive offers next to the current one. */
+export const ARCHIVE_SEASONS = 4
+
+/** "2025-26" for the 2025/26 season; used in archive URLs. */
+export function seasonSlug(year: number): string {
+  return `${year}-${String(year + 1).slice(2)}`
+}
+
+export function parseSeasonSlug(slug: string): number | null {
+  const m = slug.match(/^(\d{4})-(\d{2})$/)
+  if (!m) return null
+  const year = parseInt(m[1])
+  return String(year + 1).slice(2) === m[2] ? year : null
+}
+
+export type SeasonOption = { year: number; label: string; slug: string; isCurrent: boolean }
+
+export async function seasonOptions(): Promise<SeasonOption[]> {
+  const current = await fetchSeasonYear()
+  return Array.from({ length: ARCHIVE_SEASONS + 1 }, (_, i) => {
+    const year = current - i
+    return { year, label: seasonLabel(year), slug: seasonSlug(year), isCurrent: i === 0 }
+  })
+}
+
+export type SeasonArchive = {
+  year: number
+  label: string
+  standings: StandingEntry[]
+  topScorers: TopScorer[]
+  topAssisters: TopAssister[]
+  matchweeks: Matchweek[]
+}
+
+/** A completed season: final table, scorers and every result. Returns null for seasons outside the archive. */
+export async function fetchSeasonArchive(year: number): Promise<SeasonArchive | null> {
+  const options = await seasonOptions()
+  if (!options.some((o) => o.year === year && !o.isCurrent)) return null
+
+  const [events, standings, leaders] = await Promise.all([
+    fetchEventsBetween(new Date(Date.UTC(year, 6, 1)), new Date(Date.UTC(year + 1, 5, 30))),
+    fetchStandingsForSeason(year),
+    fetchLeadersForSeason(year),
+  ])
+  const matches = events.map(transformEvent).filter((m) => m.status === 'finished')
+  for (const entry of standings) entry.form = calculateForm(entry.club.id, matches)
+
+  return {
+    year,
+    label: seasonLabel(year),
+    standings,
+    topScorers: leaders.topScorers,
+    topAssisters: leaders.topAssisters,
+    matchweeks: groupIntoMatchweeks(matches),
+  }
+}
+
+// --- Live scores (polled by the browser on match days) ---
+
+export type LiveUpdate = Pick<Match, 'id' | 'status' | 'clock' | 'score' | 'events'>
+
+/** Today's scoreboard with a short cache, for the live poll. */
+export async function fetchLiveUpdates(): Promise<LiveUpdate[]> {
+  try {
+    const res = await fetch(`${ESPN_API}/site/v2/sports/soccer/${LEAGUE}/scoreboard`, { next: { revalidate: 30 } })
+    if (!res.ok) return []
+    const data: ESPNScoreboardResponse = await res.json()
+    return data.events.map(transformEvent).map(({ id, status, clock, score, events }) => ({ id, status, clock, score, events }))
+  } catch (error) {
+    console.error('ESPN live scoreboard failed:', error)
+    return []
+  }
+}
+
+// --- Stadiums ---
+
+export type Stadium = { slug: string; name: string; city?: string; clubs: Club[]; matches: Match[] }
+
+/** Stadiums derived from the home matches in the fetched window; the club that plays most home games there comes first. */
+export async function fetchStadiums(): Promise<Stadium[]> {
+  const { allMatches } = await fetchEredivisieData()
+  const map = new Map<string, Stadium & { counts: Map<string, number> }>()
+  for (const m of allMatches) {
+    if (!m.venue) continue
+    const slug = slugify(m.venue)
+    const entry = map.get(slug) ?? { slug, name: m.venue, city: m.city, clubs: [] as Club[], matches: [] as Match[], counts: new Map<string, number>() }
+    entry.matches.push(m)
+    entry.counts.set(m.homeTeam.id, (entry.counts.get(m.homeTeam.id) ?? 0) + 1)
+    if (!entry.clubs.some((c) => c.id === m.homeTeam.id)) entry.clubs.push(m.homeTeam)
+    map.set(slug, entry)
+  }
+  return [...map.values()].map(({ counts, ...s }) => ({
+    ...s,
+    clubs: s.clubs.sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0)),
+  }))
+}
+
+export function stadiumSlug(venue: string): string {
+  return slugify(venue)
+}
+
+// --- Other competitions on ESPN (KKD, KNVB Beker) ---
+
+export type Competition = {
+  league: string
+  name: string
+  matches: Match[]
+  standings: StandingEntry[]
+}
+
+/** Recent and upcoming matches (and the table, where there is one) of another Dutch competition. */
+export async function fetchCompetition(league: 'ned.2' | 'ned.cup'): Promise<Competition> {
+  const season = await fetchSeasonYear()
+  const from = new Date()
+  from.setUTCDate(from.getUTCDate() - 28)
+  const to = new Date()
+  to.setUTCDate(to.getUTCDate() + DAYS_AHEAD)
+  const [events, standings] = await Promise.all([
+    fetchEventsBetween(from, to, league),
+    league === 'ned.2'
+      ? fetch(`${ESPN_API}/v2/sports/soccer/${league}/standings?season=${season}`, { next: { revalidate: REVALIDATE } })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => (d ? transformStandings(d) : []))
+          .catch(() => [])
+      : Promise.resolve([] as StandingEntry[]),
+  ])
+  const matches = events.map(transformEvent).map((m) => ({
+    ...m,
+    broadcasts: [
+      { name: 'ESPN', type: 'tv' as const },
+      { name: 'ESPN.nl', type: 'online' as const, url: 'https://www.espn.nl' },
+    ],
+  }))
+  for (const entry of standings) entry.form = calculateForm(entry.club.id, matches)
+  return { league, name: league === 'ned.2' ? 'Eerste Divisie' : 'KNVB Beker', matches, standings }
 }

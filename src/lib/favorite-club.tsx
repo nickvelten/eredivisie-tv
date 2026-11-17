@@ -4,8 +4,10 @@ import { createContext, useContext, useEffect, useRef, useState, ReactNode } fro
 import Image from 'next/image'
 import { Club } from '@/data/types'
 import { clubTheme } from '@/lib/color'
+import { track } from '@/lib/analytics'
 
-export const FAVORITE_COOKIE = 'favoriteClub'
+import { FAVORITE_COOKIE } from '@/lib/favorite-cookie'
+export { FAVORITE_COOKIE }
 const STORAGE_KEY = 'favoriteClub'
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 const TOAST_MS = 4500
@@ -17,9 +19,9 @@ const FavoriteClubContext = createContext<{
 }>({ favoriteId: null, favorite: null, setFavorite: () => {} })
 
 /**
- * The favourite club is stored in a cookie so the server can render the
- * right state on the first paint (no layout shift). localStorage is kept as a
- * fallback for browsers that drop the cookie.
+ * The favourite club is stored in a cookie (read by the inline theme script in
+ * the root layout, so the colours are right on first paint) and in
+ * localStorage as a fallback for browsers that drop the cookie.
  */
 export function FavoriteClubProvider({
   children,
@@ -34,19 +36,22 @@ export function FavoriteClubProvider({
   const [toast, setToast] = useState<Club | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Pages are cached for everyone, so the favourite is read in the browser:
+  // cookie first, localStorage as fallback.
   useEffect(() => {
     if (initialFavoriteId) return
     const t = setTimeout(() => {
       try {
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (stored) {
+        const fromCookie = document.cookie.match(new RegExp(`(?:^|; )${FAVORITE_COOKIE}=([^;]+)`))?.[1]
+        const stored = fromCookie || localStorage.getItem(STORAGE_KEY)
+        if (stored && clubs.some((c) => c.id === stored)) {
           setFavoriteId(stored)
           document.cookie = `${FAVORITE_COOKIE}=${stored}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`
         }
       } catch {}
     }, 0)
     return () => clearTimeout(t)
-  }, [initialFavoriteId])
+  }, [initialFavoriteId, clubs])
 
   const favorite = clubs.find((c) => c.id === favoriteId) ?? null
 
@@ -70,6 +75,7 @@ export function FavoriteClubProvider({
 
   function setFavorite(id: string | null) {
     setFavoriteId(id)
+    track('club_select', { club: id ? clubs.find((c) => c.id === id)?.slug : 'geen' })
     try {
       if (id) {
         localStorage.setItem(STORAGE_KEY, id)

@@ -1,39 +1,57 @@
-import { cookies } from 'next/headers'
 import { ReactNode } from 'react'
 import { EredivisieData } from '@/data/types'
-import { FavoriteClubProvider, FAVORITE_COOKIE } from '@/lib/favorite-club'
+import { FavoriteClubProvider } from '@/lib/favorite-club'
 import { Header } from './Header'
 import { LiveBar } from './LiveBar'
 import { Footer } from './Footer'
 import { SiteNotices } from './SiteNotices'
+import { Sidebar, SidebarOptions } from './Sidebar'
+import { Breadcrumbs, Crumb } from './Breadcrumbs'
+import { LiveScoresProvider } from '@/lib/live-scores'
+import { matchesAroundNow } from '@/lib/utils'
 
 /**
- * Shared chrome for every page: reads the favourite-club cookie on the server
- * (so the first paint already knows the favourite, no layout shift), and
- * renders header, live bar, content and footer.
+ * Shared chrome for every page: header, live bar, a wide two-column body
+ * (content + sidebar on large screens, stacked on mobile) and the footer.
+ * Nothing here reads cookies, so pages stay cacheable; the favourite club is
+ * picked up in the browser.
  */
-export async function PageShell({
+export function PageShell({
   data,
-  showSections = false,
+  sidebar = true,
+  sidebarOptions,
+  breadcrumbs,
   children,
 }: {
   data: EredivisieData
-  showSections?: boolean
+  sidebar?: boolean
+  sidebarOptions?: SidebarOptions
+  breadcrumbs?: Crumb[]
   children: ReactNode
 }) {
-  const cookieStore = await cookies()
-  const favoriteCookie = cookieStore.get(FAVORITE_COOKIE)?.value ?? null
-  const initialFavoriteId = data.clubs.some((c) => c.id === favoriteCookie) ? favoriteCookie : null
+  const nearby = matchesAroundNow(data.allMatches)
+  // The browser polls live scores around these kickoffs
+  const kickoffs = nearby.map((m) => m.date)
 
   return (
-    <FavoriteClubProvider clubs={data.clubs} initialFavoriteId={initialFavoriteId}>
-      <Header clubs={data.clubs} showSections={showSections} />
-      <LiveBar matches={data.allMatches} />
-      <main className="flex-1">
-        {children}
-        <SiteNotices />
-      </main>
-      <Footer />
+    <LiveScoresProvider kickoffs={kickoffs}>
+    <FavoriteClubProvider clubs={data.clubs}>
+      <Header clubs={data.clubs} />
+      <LiveBar matches={nearby} />
+      <div
+        className={`mx-auto w-full max-w-7xl flex-1 px-4 sm:px-5 ${
+          sidebar ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-8' : ''
+        }`}
+      >
+        <main className="min-w-0">
+          {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
+          {children}
+          <SiteNotices />
+        </main>
+        {sidebar && <Sidebar data={data} options={sidebarOptions} />}
+      </div>
+      <Footer clubs={data.clubs} />
     </FavoriteClubProvider>
+    </LiveScoresProvider>
   )
 }

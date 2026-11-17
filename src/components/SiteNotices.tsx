@@ -27,7 +27,7 @@ function TagIcon() {
 /** Two notices above the footer: the site is for sale, and ideas are welcome. */
 export function SiteNotices() {
   return (
-    <section id="contact" className="mx-auto w-full max-w-5xl px-4 pb-12 pt-4">
+    <section id="contact" className="w-full pb-12 pt-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col rounded-2xl bg-card p-6 shadow-sm ring-1 ring-border">
           <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent-light text-accent">

@@ -17,7 +17,7 @@ export function FavoriteNextMatch({ matches }: { matches: Match[] }) {
   const lastResult = [...clubMatches].reverse().find((m) => m.status === 'finished')
 
   return (
-    <section id="mijn-club" className="mx-auto w-full max-w-5xl px-4 py-10">
+    <section id="mijn-club" className="w-full py-10">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <h2 className="text-2xl font-extrabold text-foreground">{favorite.name}</h2>
         {upcoming[0]?.status === 'scheduled' && <KickoffCountdown date={upcoming[0].date} />}

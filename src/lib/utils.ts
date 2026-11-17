@@ -72,3 +72,27 @@ export function isToday(dateStr: string): boolean {
   const today = new Intl.DateTimeFormat('sv-SE', { timeZone: TZ }).format(new Date())
   return matchDate === today
 }
+
+// "za 21 nov"
+export function formatShortDate(dateStr: string): string {
+  const parts = new Intl.DateTimeFormat('nl-NL', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' }).formatToParts(new Date(dateStr))
+  const get = (type: string) => (parts.find((p) => p.type === type)?.value ?? '').replace('.', '')
+  return `${get('weekday')} ${get('day')} ${get('month')}`
+}
+
+// "2026-11-21", the calendar date in Amsterdam
+export function amsterdamDate(dateStr: string): string {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: TZ }).format(new Date(dateStr))
+}
+
+/** Matches kicking off within 36 hours of now (either side): candidates for live updates. */
+export function matchesAroundNow<T extends { date: string }>(matches: T[], hours = 36): T[] {
+  const now = Date.now()
+  return matches.filter((m) => Math.abs(new Date(m.date).getTime() - now) < hours * 3600_000)
+}
+
+/** Amsterdam calendar date (yyyy-mm-dd) `offset` days from today. */
+export function amsterdamDayFromToday(offset: number): string {
+  const d = new Date(Date.now() + offset * 86_400_000)
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: TZ }).format(d)
+}

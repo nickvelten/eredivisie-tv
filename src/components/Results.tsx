@@ -6,7 +6,7 @@ import { formatDutchDate, groupMatchesByDate } from '@/lib/utils'
 import { MatchCard, MatchGrid } from './MatchCard'
 import { WeekNav } from './WeekNav'
 
-export function Results({ matchweeks }: { matchweeks: Matchweek[] }) {
+export function Results({ matchweeks, title = 'Uitslagen', link = true }: { matchweeks: Matchweek[]; title?: string; link?: boolean }) {
   // Only matchweeks that have finished matches
   const finishedWeeks = matchweeks
     .map((mw) => ({ ...mw, matches: mw.matches.filter((m) => m.status === 'finished') }))
@@ -20,9 +20,9 @@ export function Results({ matchweeks }: { matchweeks: Matchweek[] }) {
   const grouped = groupMatchesByDate(week.matches)
 
   return (
-    <section id="uitslagen" className="mx-auto w-full max-w-5xl px-4 py-10">
+    <section id="uitslagen" className="w-full py-10">
       <WeekNav
-        title="Uitslagen"
+        title={title}
         week={week}
         index={weekIndex}
         count={finishedWeeks.length}
@@ -41,7 +41,7 @@ export function Results({ matchweeks }: { matchweeks: Matchweek[] }) {
             </div>
             <MatchGrid>
               {matches.map((match) => (
-                <MatchCard key={match.id} match={match} />
+                <MatchCard key={match.id} match={match} link={link} />
               ))}
             </MatchGrid>
           </div>

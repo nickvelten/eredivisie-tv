@@ -6,7 +6,7 @@ import { formatDutchDate, groupMatchesByDate } from '@/lib/utils'
 import { MatchCard, MatchGrid } from './MatchCard'
 import { WeekNav } from './WeekNav'
 
-export function MatchSchedule({ matchweeks }: { matchweeks: Matchweek[] }) {
+export function MatchSchedule({ matchweeks, title = 'Programma' }: { matchweeks: Matchweek[]; title?: string }) {
   const [weekIndex, setWeekIndex] = useState(() => {
     const idx = matchweeks.findIndex((mw) =>
       mw.matches.some((m) => m.status === 'scheduled' || m.status === 'live')
@@ -16,7 +16,7 @@ export function MatchSchedule({ matchweeks }: { matchweeks: Matchweek[] }) {
 
   if (matchweeks.length === 0) {
     return (
-      <section id="programma" className="mx-auto w-full max-w-5xl px-4 py-10">
+      <section id="programma" className="w-full py-10">
         <h2 className="mb-4 text-2xl font-extrabold text-foreground">Programma</h2>
         <div className="rounded-xl border border-dashed border-border bg-card/50 px-5 py-8 text-center">
           <p className="text-sm font-semibold text-foreground">Programma tijdelijk niet beschikbaar</p>
@@ -30,9 +30,9 @@ export function MatchSchedule({ matchweeks }: { matchweeks: Matchweek[] }) {
   const grouped = groupMatchesByDate(week.matches)
 
   return (
-    <section id="programma" className="mx-auto w-full max-w-5xl px-4 py-10">
+    <section id="programma" className="w-full py-10">
       <WeekNav
-        title="Programma"
+        title={title}
         week={week}
         index={weekIndex}
         count={matchweeks.length}

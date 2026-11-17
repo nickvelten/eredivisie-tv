@@ -5,9 +5,11 @@ import Link from 'next/link'
 import { Match, Club } from '@/data/types'
 import { formatTime, formatDutchDate } from '@/lib/utils'
 import { useFavoriteClub } from '@/lib/favorite-club'
+import { useLiveMatch } from '@/lib/live-scores'
 import { BroadcastBadge } from './BroadcastBadge'
+import { OddsBar } from './OddsBar'
+import { SHOW_ODDS, showBookmakerMark } from '@/lib/betting'
 
-const UNIBET_URL = 'https://www.unibet.nl/betting/sports/filter/football/netherlands/eredivisie'
 
 function Team({ club, winner, large }: { club: Club; winner: boolean; large: boolean }) {
   const size = large ? 64 : 48
@@ -72,18 +74,25 @@ export function MatchCard({
   match,
   featured = false,
   showDate = false,
+  link = true,
 }: {
   match: Match
   featured?: boolean
   showDate?: boolean
+  /** Archived seasons have no match pages */
+  link?: boolean
 }) {
   const { favoriteId } = useFavoriteClub()
+  match = useLiveMatch(match)
   const isFavorite =
     favoriteId !== null && (match.homeTeam.id === favoriteId || match.awayTeam.id === favoriteId)
 
   const homeWins = match.status === 'finished' && !!match.score && match.score.home > match.score.away
   const awayWins = match.status === 'finished' && !!match.score && match.score.away > match.score.home
   const tvBroadcast = match.broadcasts.find((b) => b.type === 'tv')
+  const hasOdds = !!match.odds && match.status === 'scheduled' && SHOW_ODDS
+  // Roughly one in three cards gets the wider Unibet band instead of the small pill
+  const oddsStrip = hasOdds && showBookmakerMark(match.id)
   const contextLabel = showDate
     ? formatDutchDate(match.date)
     : match.round
@@ -96,11 +105,11 @@ export function MatchCard({
         isFavorite ? 'ring-2 ring-(--club-color)' : 'ring-1 ring-border'
       } ${featured ? 'sm:col-span-2' : ''}`}
     >
-      <Link
-        href={`/wedstrijd/${match.id}`}
+      {link && <Link
+        href={`/wedstrijd/${match.slug}`}
         className="absolute inset-0 z-0 rounded-xl"
         aria-label={`${match.homeTeam.name} – ${match.awayTeam.name}`}
-      />
+      />}
 
       <div className="pointer-events-none relative z-10 flex items-center justify-between gap-3 px-4 pt-3 text-[11px] font-semibold uppercase tracking-wider text-muted-light">
         <span className="truncate">
@@ -124,34 +133,19 @@ export function MatchCard({
 
       <div className="relative z-10 mt-auto flex items-center gap-2 border-t border-border px-4 py-2.5">
         {tvBroadcast && <BroadcastBadge broadcast={tvBroadcast} />}
-        {match.odds && match.status === 'scheduled' ? (
-          <a
-            href={UNIBET_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#147B45] px-2.5 py-1 text-[10px] font-bold text-white shadow-sm transition-all hover:bg-[#00531D] hover:shadow-md"
-          >
-            <span className="flex items-center gap-1 border-r border-white/20 pr-1.5">
-              <span className="text-[#FFE71F]">1</span>
-              <span>{match.odds.home.toFixed(2)}</span>
-            </span>
-            <span className="flex items-center gap-1 border-r border-white/20 pr-1.5">
-              <span className="text-[#FFE71F]">X</span>
-              <span>{match.odds.draw.toFixed(2)}</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="text-[#FFE71F]">2</span>
-              <span>{match.odds.away.toFixed(2)}</span>
-            </span>
-          </a>
+        {hasOdds && !oddsStrip ? (
+          <OddsBar odds={match.odds!} className="ml-auto" />
+        ) : match.status === 'finished' ? (
+          link ? <span className="pointer-events-none ml-auto text-[11px] font-semibold text-muted-light">Verloop →</span> : null
         ) : (
-          <span className="ml-auto text-[11px] font-medium text-muted-light">ESPN.nl</span>
+          <span className="pointer-events-none ml-auto whitespace-nowrap text-[11px] font-medium text-muted-light">Live op ESPN.nl</span>
         )}
       </div>
+      {hasOdds && oddsStrip && <OddsBar odds={match.odds!} variant="strip" className="relative z-10 rounded-b-xl" />}
     </article>
   )
 }
 
 export function MatchGrid({ children }: { children: React.ReactNode }) {
-  return <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
+  return <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{children}</div>
 }

@@ -1,9 +1,9 @@
-import { findMatchById } from '@/lib/espn'
+import { findMatch } from '@/lib/espn'
 import { matchCalendar } from '@/lib/ics'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const result = await findMatchById(id)
+  const result = await findMatch(id)
   if (!result) return new Response('Wedstrijd niet gevonden', { status: 404 })
 
   const { match } = result

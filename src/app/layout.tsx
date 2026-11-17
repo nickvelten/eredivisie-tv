@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
-import { cookies } from 'next/headers'
-import type { CSSProperties } from 'react'
 import { fetchEredivisieData } from '@/lib/espn'
-import { FAVORITE_COOKIE } from '@/lib/favorite-club'
+import { FAVORITE_COOKIE } from '@/lib/favorite-cookie'
 import { clubTheme } from '@/lib/color'
+import { ScrollReset } from '@/components/ScrollReset'
+import { AnalyticsListener } from '@/components/AnalyticsListener'
 import './globals.css'
 
 const geistSans = Geist({
@@ -19,11 +19,10 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Eredivisie.tv — Wedstrijden & TV Gids | Eredivisie op TV',
+  metadataBase: new URL('https://eredivisie.tv'),
+  title: 'Eredivisie op TV vandaag: wedstrijden, zenders & tijden | Eredivisie.tv',
   description:
-    'Bekijk alle Eredivisie wedstrijden en ontdek waar je ze live kunt zien op TV en online. Compleet programma, uitslagen, stand en TV gids voor de Nederlandse Eredivisie.',
-  keywords:
-    'eredivisie, eredivisie tv, eredivisie op tv, voetbal op tv, eredivisie programma, eredivisie stand, eredivisie uitslagen, espn eredivisie, eredivisie live, eredivisie kijken',
+    'Welke Eredivisie-wedstrijd is vandaag op TV en op welke zender? Alle aftraptijden, ESPN-zenders, uitslagen, de actuele stand en topscorers op één plek.',
   openGraph: {
     title: 'Eredivisie.tv — Wedstrijden & TV Gids',
     description:
@@ -40,6 +39,7 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: 'https://eredivisie.tv',
+    languages: { 'nl-NL': 'https://eredivisie.tv' },
   },
   robots: {
     index: true,
@@ -55,42 +55,41 @@ export const metadata: Metadata = {
     : undefined,
 }
 
+// Favourite-club colours are applied in the browser before first paint, so
+// the server never reads cookies and every page can be cached (ISR). The map
+// below comes from the cached ESPN data: club id -> slug + CSS variables.
+function clubThemeScript(themes: Record<string, [string, string, string, string, string]>) {
+  return `(function(){try{var d=document.documentElement,t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches))d.classList.add('dark');var m=document.cookie.match(/(?:^|; )${FAVORITE_COOKIE}=([^;]+)/),id=(m&&m[1])||localStorage.getItem('${FAVORITE_COOKIE}'),c=id&&${JSON.stringify(themes)}[id];if(c){d.dataset.club=c[0];d.style.setProperty('--club-color',c[1]);d.style.setProperty('--club-on',c[2]);d.style.setProperty('--club-accent',c[3]);d.style.setProperty('--club-accent-dark',c[4])}}catch(e){}})()`
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  // Apply the favourite club's colours on the very first paint. The cookie
-  // holds the club id; the (cached) ESPN data supplies slug and colour.
-  const favoriteCookie = (await cookies()).get(FAVORITE_COOKIE)?.value ?? null
-  const club = favoriteCookie ? (await fetchEredivisieData()).clubs.find((c) => c.id === favoriteCookie) : undefined
-  const theme = club ? clubTheme(club.color) : null
-  const clubStyle = theme
-    ? ({
-        '--club-color': theme.base,
-        '--club-on': theme.onHero,
-        '--club-accent': theme.accent,
-        '--club-accent-dark': theme.accentDark,
-      } as CSSProperties)
-    : undefined
+  const { clubs } = await fetchEredivisieData()
+  const themes = Object.fromEntries(
+    clubs.map((club) => {
+      const t = clubTheme(club.color)
+      return [club.id, [club.slug, t.base, t.onHero, t.accent, t.accentDark] as [string, string, string, string, string]]
+    })
+  )
 
   return (
     <html
       lang="nl"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      data-club={club?.slug}
-      style={clubStyle}
       suppressHydrationWarning
     >
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')}catch(e){}})()`,
-          }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: clubThemeScript(themes) }} />
       </head>
-      <body className="min-h-full flex flex-col bg-background">{children}</body>
-      {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
+      <body className="min-h-full flex flex-col bg-background">
+        <ScrollReset />
+        <AnalyticsListener />
+        {children}
+        {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
+      </body>
     </html>
   )
 }

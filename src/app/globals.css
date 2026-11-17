@@ -9,8 +9,8 @@
   --card-hover: #f8f8fc;
   --border-color: rgba(0, 0, 0, 0.06);
   --muted: #64748b;
-  --muted-light: #94a3b8;
-  --accent: #e01e36;
+  --muted-light: #6b7280;
+  --accent: #c8102e;
   --accent-light: #fee2e5;
   --club-color: var(--accent);
   --club-on: #ffffff;
@@ -23,7 +23,7 @@
   --card-hover: #22232d;
   --border-color: rgba(255, 255, 255, 0.08);
   --muted: #9ca3af;
-  --muted-light: #6b7280;
+  --muted-light: #8b93a1;
   --accent: #ef4444;
   --accent-light: rgba(239, 68, 68, 0.15);
 }
@@ -107,4 +107,11 @@ body {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

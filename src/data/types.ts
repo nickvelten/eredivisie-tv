@@ -28,6 +28,7 @@ export type MatchEvent = {
 
 export type Match = {
   id: string
+  slug: string // e.g. "ajax-feyenoord-401875655"
   homeTeam: Club
   awayTeam: Club
   date: string
@@ -67,6 +68,7 @@ export type StandingEntry = {
 
 export type TopScorer = {
   position: number
+  playerId?: string
   name: string
   goals: number
   matches: number
@@ -76,6 +78,7 @@ export type TopScorer = {
 
 export type TopAssister = {
   position: number
+  playerId?: string
   name: string
   assists: number
   matches: number
@@ -108,4 +111,37 @@ export type EredivisieData = {
   topAssisters: TopAssister[]
   standingsSeason: SeasonInfo | null
   leadersSeason: SeasonInfo | null
+}
+
+export type PlayerPosition = 'Keeper' | 'Verdediger' | 'Middenvelder' | 'Aanvaller' | 'Speler'
+
+export type PlayerStats = {
+  appearances: number
+  subIns: number
+  goals: number
+  assists: number
+  shots: number
+  shotsOnTarget: number
+  yellowCards: number
+  redCards: number
+  saves: number
+  goalsConceded: number
+}
+
+export type Player = {
+  id: string
+  slug: string // unique across the league, e.g. "steven-berghuis"
+  name: string
+  firstName?: string
+  lastName?: string
+  club: Club
+  jersey?: string
+  position: PlayerPosition
+  age?: number
+  dateOfBirth?: string
+  nationality?: string
+  flag?: string
+  headshot?: string
+  heightCm?: number
+  stats: PlayerStats
 }

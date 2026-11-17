@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: 'https://eredivisie.tv/sitemap.xml',
+    sitemap: ['https://eredivisie.tv/sitemap.xml', 'https://eredivisie.tv/speler/sitemap.xml'],
   }
 }
