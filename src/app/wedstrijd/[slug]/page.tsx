@@ -230,6 +230,7 @@ export default async function MatchPage({ params }: Params) {
         <h1 className="mb-4 mt-1 text-center text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">
           {name}
           {match.status === 'scheduled' && <span className="text-muted"> op TV</span>}
+          {match.status === 'finished' && <span className="text-muted">: uitslag</span>}
         </h1>
         <div className="rounded-2xl bg-card p-6 shadow-sm ring-1 ring-border sm:p-8">
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">

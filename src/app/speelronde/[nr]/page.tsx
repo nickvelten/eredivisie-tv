@@ -6,7 +6,9 @@ import { MatchCard, MatchGrid } from '@/components/MatchCard'
 import { fetchEredivisieData } from '@/lib/espn'
 import { matchStructuredData, SITE_URL } from '@/lib/structured-data'
 import { OG_DEFAULT_IMAGES } from '@/lib/og'
-import { EredivisieData, Match } from '@/data/types'
+import { EredivisieData, Match, StandingEntry } from '@/data/types'
+import { PredictMatch, RoundPredictor } from '@/components/RoundPredictor'
+import { formatDutchDate, formatTime } from '@/lib/utils'
 
 type Params = { params: Promise<{ nr: string }> }
 
@@ -47,6 +49,27 @@ function summary(matches: Match[]): string | null {
   return `In ${done.length} gespeelde wedstrijd${done.length === 1 ? '' : 'en'} vielen ${goals} doelpunten (${(goals / done.length).toFixed(1)} per wedstrijd). ${homeWins} thuisoverwinning${homeWins === 1 ? '' : 'en'}, ${draws} gelijkspel${draws === 1 ? '' : 'en'}. Grootste uitslag: ${biggest.homeTeam.name} – ${biggest.awayTeam.name} ${biggest.score!.home}-${biggest.score!.away}.`
 }
 
+/** Short preview for a round that has not been played: the leader, the bottom club and the opening match. */
+function preview(matches: Match[], standings: StandingEntry[]): string | null {
+  const open = matches.filter((m) => m.status === 'scheduled').sort((a, b) => a.date.localeCompare(b.date))
+  if (open.length === 0 || standings.length === 0) return null
+  const has = (id: string) => (m: Match) => m.homeTeam.id === id || m.awayTeam.id === id
+  const opponent = (m: Match, id: string) => (m.homeTeam.id === id ? `${m.awayTeam.name} (thuis)` : `${m.homeTeam.name} (uit)`)
+  const leader = standings[0]
+  const last = standings[standings.length - 1]
+  const parts = [`De speelronde begint ${formatDutchDate(open[0].date)} om ${formatTime(open[0].date)} met ${open[0].homeTeam.name} – ${open[0].awayTeam.name}.`]
+  const lm = open.find(has(leader.club.id))
+  if (lm) parts.push(`Koploper ${leader.club.name} (${leader.points} punten) speelt tegen ${opponent(lm, leader.club.id)}.`)
+  const bm = open.find(has(last.club.id))
+  if (bm) parts.push(`Hekkensluiter ${last.club.name} treft ${opponent(bm, last.club.id)}.`)
+  return parts.join(' ')
+}
+
+function outcome(m: Match): PredictMatch['outcome'] {
+  if (m.status !== 'finished' || !m.score) return undefined
+  return m.score.home > m.score.away ? '1' : m.score.home < m.score.away ? '2' : 'X'
+}
+
 export default async function SpeelrondePage({ params }: Params) {
   const { nr } = await params
   const data = await fetchEredivisieData()
@@ -61,6 +84,15 @@ export default async function SpeelrondePage({ params }: Params) {
     .sort((a, b) => (rank.get(a.homeTeam.id) ?? 18) + (rank.get(a.awayTeam.id) ?? 18) - ((rank.get(b.homeTeam.id) ?? 18) + (rank.get(b.awayTeam.id) ?? 18)))[0]
   const text = summary(week.matches)
   const sorted = [...week.matches].sort((a, b) => a.date.localeCompare(b.date))
+  const intro = preview(week.matches, data.standings)
+  const predict: PredictMatch[] = sorted.map((m) => ({
+    id: m.id,
+    home: m.homeTeam.shortName,
+    away: m.awayTeam.shortName,
+    finished: m.status === 'finished',
+    locked: m.status !== 'scheduled',
+    outcome: outcome(m),
+  }))
 
   return (
     <PageShell data={data} breadcrumbs={[{ label: 'Programma', href: '/programma' }, { label: `Speelronde ${week.round}`, href: `/speelronde/${week.round}` }]}>
@@ -71,6 +103,7 @@ export default async function SpeelrondePage({ params }: Params) {
       </div>
       <h1 className="pt-2 text-3xl font-extrabold tracking-tight text-foreground">Eredivisie speelronde {week.round}</h1>
       <p className="mt-1 text-sm text-muted">{week.label}</p>
+      {intro && <p className="mt-4 max-w-2xl text-sm text-foreground">{intro}</p>}
       {text && <p className="mt-4 max-w-2xl text-sm text-foreground">{text}</p>}
       {topper && (
         <section className="w-full pt-8">
@@ -88,6 +121,7 @@ export default async function SpeelrondePage({ params }: Params) {
           ))}
         </MatchGrid>
       </section>
+      <RoundPredictor round={week.round!} matches={predict} />
     </PageShell>
   )
 }

@@ -16,6 +16,16 @@ const PAGES = [
   '/eerste-divisie',
   '/knvb-beker',
   '/widget-insluiten',
+  '/eredivisie-dit-weekend',
+  '/stand/thuis',
+  '/stand/uit',
+  '/stand/vorm',
+  '/restprogramma',
+  '/standcalculator',
+  '/zender/espn-1',
+  '/gids',
+  '/gids/eredivisie-kijken-zonder-ziggo',
+  '/speelronde/1',
 ]
 
 for (const path of PAGES) {

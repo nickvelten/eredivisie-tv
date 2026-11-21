@@ -32,6 +32,11 @@ export function Footer({ clubs = [] }: { clubs?: Club[] }) {
             {NAV_ITEMS.filter((item) => item.href !== '/').map((item) => (
               <Link key={item.href} href={item.href} className="transition-colors hover:text-foreground">{item.label}</Link>
             ))}
+            <Link href="/eredivisie-dit-weekend" className="transition-colors hover:text-foreground">Dit weekend</Link>
+            <Link href="/restprogramma" className="transition-colors hover:text-foreground">Restprogramma</Link>
+            <Link href="/standcalculator" className="transition-colors hover:text-foreground">Standcalculator</Link>
+            <Link href="/gids" className="transition-colors hover:text-foreground">Eredivisie kijken</Link>
+            <Link href="/zender/espn-1" className="transition-colors hover:text-foreground">Zenders</Link>
             <Link href="/widget-insluiten" className="transition-colors hover:text-foreground">Widget</Link>
             <Link href="/vergelijk" className="transition-colors hover:text-foreground">Vergelijken</Link>
             <Link href="/te-koop" className="transition-colors hover:text-foreground">Website te koop</Link>

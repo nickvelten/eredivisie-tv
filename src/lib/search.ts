@@ -13,6 +13,19 @@ const PAGES: Array<Pick<SearchItem, 'title' | 'subtitle' | 'href'> & { extra: st
   { title: 'Stand', subtitle: 'De actuele Eredivisie-stand', href: '/stand', extra: 'ranglijst klassement' },
   { title: 'Topscorers', subtitle: 'Doelpunten en assists', href: '/topscorers', extra: 'goals assists' },
   { title: 'Clubs', subtitle: 'Alle 18 Eredivisie-clubs', href: '/clubs', extra: 'teams' },
+  { title: 'Dit weekend', subtitle: 'Alle wedstrijden van vrijdag tot zondag', href: '/eredivisie-dit-weekend', extra: 'weekend zaterdag zondag vrijdag' },
+  { title: 'Thuisstand', subtitle: 'De stand in eigen huis', href: '/stand/thuis', extra: 'thuis stand' },
+  { title: 'Uitstand', subtitle: 'De stand buiten de deur', href: '/stand/uit', extra: 'uit stand' },
+  { title: 'Vormtabel', subtitle: 'De stand over de laatste 5 wedstrijden', href: '/stand/vorm', extra: 'vorm laatste 5' },
+  { title: 'Restprogramma', subtitle: 'Wie heeft het zwaarste programma?', href: '/restprogramma', extra: 'resterend programma tegenstanders' },
+  { title: 'Standcalculator', subtitle: 'Reken de stand door', href: '/standcalculator', extra: 'calculator voorspellen' },
+  { title: 'Eredivisie kijken zonder Ziggo', subtitle: 'KPN, Odido en Canal Digitaal', href: '/gids/eredivisie-kijken-zonder-ziggo', extra: 'kpn odido canal digitaal ziggo' },
+  { title: 'ESPN-abonnement vergelijken', subtitle: 'Prijzen per provider', href: '/gids/espn-abonnement-vergelijken', extra: 'espn prijs kosten abonnement' },
+  { title: 'Eredivisie kijken in het buitenland', subtitle: 'Op vakantie of in het buitenland', href: '/gids/eredivisie-kijken-in-het-buitenland', extra: 'buitenland vakantie eu' },
+  { title: 'ESPN 1', subtitle: 'Eredivisie op ESPN 1', href: '/zender/espn-1', extra: 'espn1 zender' },
+  { title: 'ESPN 2', subtitle: 'Eredivisie op ESPN 2', href: '/zender/espn-2', extra: 'espn2 zender' },
+  { title: 'ESPN 3', subtitle: 'Eredivisie op ESPN 3', href: '/zender/espn-3', extra: 'espn3 zender' },
+  { title: 'ESPN 4', subtitle: 'Eredivisie op ESPN 4', href: '/zender/espn-4', extra: 'espn4 zender' },
 ]
 
 /** Everything the search box can find. Built from cached ESPN data. */
