@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export const CONSENT_KEY = 'consent'
@@ -23,6 +24,7 @@ function updateConsent(choice: Choice) {
  */
 export function ConsentBanner() {
   const [open, setOpen] = useState(false)
+  const en = usePathname()?.startsWith('/en') ?? false
 
   useEffect(() => {
     let stored: string | null = null
@@ -47,12 +49,13 @@ export function ConsentBanner() {
     <div
       role="dialog"
       aria-label="Cookies"
-      className="fixed inset-x-4 bottom-20 z-[70] sm:bottom-4 mx-auto max-w-lg rounded-2xl bg-card p-4 shadow-2xl ring-1 ring-border sm:p-5"
+      className={`fixed inset-x-4 ${en ? 'bottom-4' : 'bottom-20'} z-[70] sm:bottom-4 mx-auto max-w-lg rounded-2xl bg-card p-4 shadow-2xl ring-1 ring-border sm:p-5`}
     >
-      <p className="text-sm font-bold text-foreground">Cookies voor statistieken</p>
+      <p className="text-sm font-bold text-foreground">{en ? 'Cookies for statistics' : 'Cookies voor statistieken'}</p>
       <p className="mt-1 text-sm text-muted">
-        Mogen we anonieme bezoekersstatistieken bijhouden met Google Analytics? Zo zien we welke pagina&apos;s nuttig zijn.
-        Je club en thema onthouden we altijd, die blijven op je eigen apparaat.{' '}
+        {en
+          ? 'May we keep anonymous visitor statistics with Google Analytics? It shows us which pages are useful. '
+          : 'Mogen we anonieme bezoekersstatistieken bijhouden met Google Analytics? Zo zien we welke pagina\'s nuttig zijn. Je club en thema onthouden we altijd, die blijven op je eigen apparaat. '}
         <Link href="/privacy" className="font-semibold text-accent hover:underline">Privacy</Link>
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
@@ -61,14 +64,14 @@ export function ConsentBanner() {
           onClick={() => choose('granted')}
           className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-accent/90"
         >
-          Akkoord
+          {en ? 'Accept' : 'Akkoord'}
         </button>
         <button
           type="button"
           onClick={() => choose('denied')}
           className="rounded-full bg-card px-4 py-2 text-sm font-bold text-foreground ring-1 ring-border hover:text-accent"
         >
-          Weigeren
+          {en ? 'Decline' : 'Weigeren'}
         </button>
       </div>
     </div>

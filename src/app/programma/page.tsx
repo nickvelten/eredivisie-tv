@@ -5,6 +5,7 @@ import { RoundSchedule } from '@/components/RoundSchedule'
 import { LeagueCalendarButtons } from '@/components/CalendarButtons'
 import { fetchEredivisieData } from '@/lib/espn'
 import { matchStructuredData, SITE_URL } from '@/lib/structured-data'
+import { languageAlternates } from '@/lib/i18n'
 
 export const revalidate = 300
 
@@ -14,7 +15,7 @@ const description = 'Het complete Eredivisie-programma per speelronde: datum, af
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: `${SITE_URL}/programma` },
+  alternates: { canonical: `${SITE_URL}/programma`, languages: languageAlternates('/programma', '/en/fixtures') },
   openGraph: { title, description, url: `${SITE_URL}/programma`, type: 'website', locale: 'nl_NL', siteName: 'Eredivisie.tv', images: OG_DEFAULT_IMAGES },
 }
 

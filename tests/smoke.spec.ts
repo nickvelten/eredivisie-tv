@@ -26,6 +26,11 @@ const PAGES = [
   '/gids',
   '/gids/eredivisie-kijken-zonder-ziggo',
   '/speelronde/1',
+  '/en',
+  '/en/fixtures',
+  '/en/table',
+  '/en/top-scorers',
+  '/en/club/ajax',
 ]
 
 for (const path of PAGES) {
@@ -97,4 +102,20 @@ test('sitemaps and robots', async ({ request }) => {
   for (const path of ['/sitemap.xml', '/speler/sitemap.xml', '/robots.txt']) {
     expect((await request.get(path)).status(), path).toBe(200)
   }
+})
+
+test('Dutch and English pages point at each other with hreflang', async ({ page }) => {
+  await page.goto('/stand')
+  await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute('href', 'https://eredivisie.tv/en/table')
+  await page.goto('/en/table')
+  await expect(page.locator('link[rel="alternate"][hreflang="nl"]')).toHaveAttribute('href', 'https://eredivisie.tv/stand')
+  await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveCount(1)
+})
+
+test('English match page renders', async ({ page }) => {
+  const index = await (await page.request.get('/api/zoek-index')).json()
+  const match = index.find((i: { href: string }) => i.href.startsWith('/wedstrijd/'))
+  const res = await page.goto(match.href.replace('/wedstrijd/', '/en/match/'))
+  expect(res?.status()).toBe(200)
+  await expect(page.locator('h1')).toContainText(' vs ')
 })

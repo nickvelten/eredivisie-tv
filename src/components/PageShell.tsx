@@ -7,6 +7,7 @@ import { BottomNav } from './BottomNav'
 import { InstallPrompt } from './InstallPrompt'
 import { Footer } from './Footer'
 import { SiteNotices } from './SiteNotices'
+import { EnglishHint } from './EnglishHint'
 import { Sidebar, SidebarOptions } from './Sidebar'
 import { Breadcrumbs, Crumb } from './Breadcrumbs'
 import { LiveScoresProvider } from '@/lib/live-scores'
@@ -46,6 +47,7 @@ export function PageShell({
         }`}
       >
         <main className="min-w-0">
+          <EnglishHint />
           {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
           {children}
           <SiteNotices />

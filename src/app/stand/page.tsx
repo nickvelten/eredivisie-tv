@@ -7,6 +7,7 @@ import { fetchEredivisieData, seasonOptions } from '@/lib/espn'
 import { SeasonSwitch } from '@/components/SeasonSwitch'
 import { StandTabs } from '@/components/StandTabs'
 import { SITE_URL } from '@/lib/structured-data'
+import { languageAlternates } from '@/lib/i18n'
 
 export const revalidate = 300
 
@@ -18,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
   title,
   description,
-  alternates: { canonical: `${SITE_URL}/stand` },
+  alternates: { canonical: `${SITE_URL}/stand`, languages: languageAlternates('/stand', '/en/table') },
   openGraph: { title, description, url: `${SITE_URL}/stand`, type: 'website', locale: 'nl_NL', siteName: 'Eredivisie.tv', images: OG_DEFAULT_IMAGES },
   }
 }

@@ -18,6 +18,7 @@ import { fetchMatchDetails } from '@/lib/match-details'
 import { MatchDetailsView } from '@/components/MatchDetailsView'
 import { LiveCentre } from '@/components/LiveCentre'
 import { seasonSlug, stadiumSlug } from '@/lib/espn'
+import { languageAlternates } from '@/lib/i18n'
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -48,7 +49,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: { canonical: url, languages: languageAlternates(`/wedstrijd/${match.slug}`, `/en/match/${match.slug}`) },
     openGraph: { title, description, url, type: 'website', locale: 'nl_NL', siteName: 'Eredivisie.tv' },
     twitter: { card: 'summary_large_image', title, description },
   }

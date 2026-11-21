@@ -10,9 +10,10 @@ import { MatchdayTicker } from '@/components/MatchdayTicker'
 import { isToday } from '@/lib/utils'
 import { fetchEredivisieData } from '@/lib/espn'
 import { matchStructuredData, organizationStructuredData, SITE_URL, websiteStructuredData } from '@/lib/structured-data'
+import { languageAlternates } from '@/lib/i18n'
 
 export const metadata: Metadata = {
-  alternates: { canonical: SITE_URL },
+  alternates: { canonical: SITE_URL, languages: languageAlternates('/', '/en') },
   openGraph: {
     title: 'Eredivisie op TV vandaag: wedstrijden, zenders & tijden',
     description:

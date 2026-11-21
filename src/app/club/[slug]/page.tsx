@@ -19,6 +19,7 @@ import { FormResult, Match, Club } from '@/data/types'
 import { clubTheme } from '@/lib/color'
 import { remainingSchedule } from '@/lib/table'
 import type { CSSProperties } from 'react'
+import { languageAlternates } from '@/lib/i18n'
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -52,7 +53,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: { canonical: url, languages: languageAlternates(`/club/${club.slug}`, `/en/club/${club.slug}`) },
     openGraph: { title, description, url, type: 'website', locale: 'nl_NL', siteName: 'Eredivisie.tv' },
     twitter: { card: 'summary_large_image', title, description },
   }
