@@ -3,6 +3,7 @@ import { duelSlug, fetchEredivisieData, fetchStadiums, seasonOptions } from '@/l
 import { SITE_URL } from '@/lib/structured-data'
 import { CHANNELS } from '@/lib/channels'
 import { GUIDES } from '@/data/guides'
+import { enPathFor } from '@/lib/i18n'
 
 // Main sitemap; players have their own at /speler/sitemap.xml.
 // Built per request (from cached ESPN data). A revalidate here was not
@@ -30,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!duels.has(slug) || d > duels.get(slug)!) duels.set(slug, d)
   }
 
-  return [
+  const entries: MetadataRoute.Sitemap = [
     { url: SITE_URL, lastModified: now },
     { url: `${SITE_URL}/eredivisie-op-tv-vandaag`, lastModified: now },
     { url: `${SITE_URL}/programma`, lastModified: lastResult },
@@ -71,4 +72,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .filter((o) => !o.isCurrent)
       .flatMap((o) => ['stand', 'topscorers', 'uitslagen'].map((section) => ({ url: `${SITE_URL}/${section}/${o.slug}`, lastModified: new Date(Date.UTC(o.year + 1, 5, 1)) }))),
   ]
+
+  // Pages with an English twin get hreflang alternates, and the English URL is listed too
+  const english: MetadataRoute.Sitemap = []
+  for (const entry of entries) {
+    const path = entry.url.slice(SITE_URL.length) || '/'
+    const en = enPathFor(path)
+    if (!en) continue
+    const languages = { nl: entry.url, en: `${SITE_URL}${en}`, 'x-default': entry.url }
+    entry.alternates = { languages }
+    english.push({ url: `${SITE_URL}${en}`, lastModified: entry.lastModified, alternates: { languages } })
+  }
+  return [...entries, ...english]
 }

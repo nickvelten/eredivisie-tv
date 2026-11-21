@@ -39,6 +39,7 @@ export function Footer({ clubs = [] }: { clubs?: Club[] }) {
             <Link href="/zender/espn-1" className="transition-colors hover:text-foreground">Zenders</Link>
             <Link href="/widget-insluiten" className="transition-colors hover:text-foreground">Widget</Link>
             <Link href="/vergelijk" className="transition-colors hover:text-foreground">Vergelijken</Link>
+            <Link href="/en" hrefLang="en" className="transition-colors hover:text-foreground">English</Link>
             <Link href="/te-koop" className="transition-colors hover:text-foreground">Website te koop</Link>
           </nav>
           <div className="space-y-1.5 text-xs text-muted-light">

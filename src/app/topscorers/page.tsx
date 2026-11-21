@@ -6,6 +6,7 @@ import { fetchEredivisieData, seasonOptions } from '@/lib/espn'
 import { SeasonSwitch } from '@/components/SeasonSwitch'
 import { fetchAllPlayers } from '@/lib/players'
 import { SITE_URL } from '@/lib/structured-data'
+import { languageAlternates } from '@/lib/i18n'
 
 export const revalidate = 3600
 
@@ -17,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
   title,
   description,
-  alternates: { canonical: `${SITE_URL}/topscorers` },
+  alternates: { canonical: `${SITE_URL}/topscorers`, languages: languageAlternates('/topscorers', '/en/top-scorers') },
   openGraph: { title, description, url: `${SITE_URL}/topscorers`, type: 'website', locale: 'nl_NL', siteName: 'Eredivisie.tv', images: OG_DEFAULT_IMAGES },
   }
 }
