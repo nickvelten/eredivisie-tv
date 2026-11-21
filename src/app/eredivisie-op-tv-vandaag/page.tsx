@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import { OG_DEFAULT_IMAGES } from '@/lib/og'
 import Link from 'next/link'
 import { PageShell } from '@/components/PageShell'
 import { TodayHighlight } from '@/components/TodayHighlight'
 import { Providers } from '@/components/Providers'
 import { Faq } from '@/components/Faq'
+import { ShareButton } from '@/components/ShareButton'
 import { DayTabs } from '@/components/DayTabs'
 import { ThreeDayGuide } from '@/components/ThreeDayGuide'
 import { fetchEredivisieData } from '@/lib/espn'
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   title,
   description,
   alternates: { canonical: `${SITE_URL}/eredivisie-op-tv-vandaag` },
-  openGraph: { title, description, url: `${SITE_URL}/eredivisie-op-tv-vandaag`, type: 'website', locale: 'nl_NL', siteName: 'Eredivisie.tv', images: OG_DEFAULT_IMAGES },
+  openGraph: { title, description, url: `${SITE_URL}/eredivisie-op-tv-vandaag`, type: 'website', locale: 'nl_NL', siteName: 'Eredivisie.tv' },
 }
 
 export default async function OpTvVandaagPage() {
@@ -71,6 +71,13 @@ export default async function OpTvVandaagPage() {
           : 'Vandaag geen Eredivisie. Hieronder de eerstvolgende speeldag.'}{' '}
         Bekijk het hele <Link href="/programma" className="font-semibold text-accent hover:underline">programma</Link>.
       </p>
+      <div className="mt-4">
+        <ShareButton
+          url={`${SITE_URL}/eredivisie-op-tv-vandaag`}
+          text={today.length > 0 ? `Eredivisie vandaag op TV: ${today.map((m) => `${formatTime(m.date)} ${m.homeTeam.shortName}-${m.awayTeam.shortName}`).join(', ')}` : 'Eredivisie op TV vandaag'}
+          label="Deel het programma"
+        />
+      </div>
       <TodayHighlight matches={data.allMatches} standings={data.standings} />
       <ThreeDayGuide matches={data.allMatches} startOffset={1} />
       <Providers />

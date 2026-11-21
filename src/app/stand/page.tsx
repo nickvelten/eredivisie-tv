@@ -5,6 +5,7 @@ import { PageShell } from '@/components/PageShell'
 import { Standings } from '@/components/Standings'
 import { fetchEredivisieData, seasonOptions } from '@/lib/espn'
 import { SeasonSwitch } from '@/components/SeasonSwitch'
+import { StandTabs } from '@/components/StandTabs'
 import { SITE_URL } from '@/lib/structured-data'
 
 export const revalidate = 300
@@ -30,6 +31,7 @@ export default async function StandPage() {
   return (
     <PageShell data={data} breadcrumbs={[{ label: 'Stand', href: '/stand' }]} sidebarOptions={{ hideStandings: true }}>
       <SeasonSwitch options={options} active={options[0].year} basePath="/stand" />
+      <StandTabs active="/stand" />
       <Standings standings={data.standings} season={data.standingsSeason} title="Eredivisie stand" as="h1" />
       {leader && runnerUp && (
         <p className="-mt-4 pb-8 text-sm text-muted">

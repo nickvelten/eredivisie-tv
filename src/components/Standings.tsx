@@ -29,11 +29,14 @@ export function Standings({
   season,
   title = 'Eredivisie Stand',
   as: Heading = 'h2',
+  zones = true,
 }: {
   standings: StandingEntry[]
   season?: SeasonInfo | null
   title?: string
   as?: 'h1' | 'h2'
+  /** Europe/relegation markers; off for home, away and form tables */
+  zones?: boolean
 }) {
   if (standings.length === 0) {
     return (
@@ -83,7 +86,7 @@ export function Standings({
           </thead>
           <tbody>
             {standings.map((entry) => {
-              const dot = positionDot(entry.position)
+              const dot = zones ? positionDot(entry.position) : null
               return (
                 <tr
                   key={entry.club.id}
@@ -140,7 +143,7 @@ export function Standings({
           </tbody>
         </table>
       </div>
-      <div className="mt-4 flex flex-wrap gap-5 text-xs font-medium text-muted">
+      {zones && <div className="mt-4 flex flex-wrap gap-5 text-xs font-medium text-muted">
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" /> Champions League
         </span>
@@ -156,7 +159,7 @@ export function Standings({
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-red-400" /> Degradatie
         </span>
-      </div>
+      </div>}
     </section>
   )
 }

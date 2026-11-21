@@ -3,6 +3,7 @@ import Link from 'next/link'
 const DAYS = [
   { label: 'Vandaag', href: '/eredivisie-op-tv-vandaag' },
   { label: 'Morgen', href: '/eredivisie-op-tv-morgen' },
+  { label: 'Dit weekend', href: '/eredivisie-dit-weekend' },
   { label: 'Programma', href: '/programma' },
 ]
 

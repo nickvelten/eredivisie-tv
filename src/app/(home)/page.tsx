@@ -9,7 +9,7 @@ import { Providers } from '@/components/Providers'
 import { MatchdayTicker } from '@/components/MatchdayTicker'
 import { isToday } from '@/lib/utils'
 import { fetchEredivisieData } from '@/lib/espn'
-import { matchStructuredData, SITE_URL, websiteStructuredData } from '@/lib/structured-data'
+import { matchStructuredData, organizationStructuredData, SITE_URL, websiteStructuredData } from '@/lib/structured-data'
 
 export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
@@ -57,7 +57,7 @@ export default async function Home() {
         <RoundSchedule matchweeks={matchweeks} mode="upcoming" title="Programma" excludeIds={todayIds} />
         <RoundSchedule matchweeks={matchweeks} mode="results" title="Uitslagen" />
         <Providers />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData()) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationStructuredData(), websiteStructuredData()]) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(upcomingMatches) }} />
       </PageShell>
   )

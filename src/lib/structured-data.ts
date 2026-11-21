@@ -6,16 +6,30 @@ export function matchUrl(match: Match): string {
   return `${SITE_URL}/wedstrijd/${match.slug}`
 }
 
+export function organizationStructuredData() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': `${SITE_URL}/#organization`,
+    name: 'Eredivisie.tv',
+    url: SITE_URL,
+    logo: { '@type': 'ImageObject', url: `${SITE_URL}/icon-512.png`, width: 512, height: 512 },
+    email: 'hey@nickvelten.nl',
+    description: 'Onafhankelijke tv-gids voor de Eredivisie: wedstrijden, zenders, uitslagen en stand.',
+  }
+}
+
 export function websiteStructuredData() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': `${SITE_URL}/#website`,
     name: 'Eredivisie.tv',
     url: SITE_URL,
     description:
       'Welke Eredivisie-wedstrijd is vandaag op TV en op welke zender? Programma, uitslagen, stand, topscorers en spelers.',
     inLanguage: 'nl-NL',
-    publisher: { '@type': 'Organization', name: 'Eredivisie.tv', url: SITE_URL, logo: `${SITE_URL}/icon.svg` },
+    publisher: { '@id': `${SITE_URL}/#organization` },
     potentialAction: {
       '@type': 'SearchAction',
       target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/zoeken?q={search_term_string}` },

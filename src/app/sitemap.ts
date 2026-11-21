@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next'
 import { duelSlug, fetchEredivisieData, fetchStadiums, seasonOptions } from '@/lib/espn'
 import { SITE_URL } from '@/lib/structured-data'
+import { CHANNELS } from '@/lib/channels'
+import { GUIDES } from '@/data/guides'
 
 // Main sitemap; players have their own at /speler/sitemap.xml.
 // Built per request (from cached ESPN data). A revalidate here was not
@@ -43,6 +45,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...[...duels].map(([slug, lastModified]) => ({ url: `${SITE_URL}/duel/${slug}`, lastModified })),
     { url: `${SITE_URL}/eredivisie-op-tv-morgen`, lastModified: now },
+    { url: `${SITE_URL}/eredivisie-dit-weekend`, lastModified: now },
+    { url: `${SITE_URL}/stand/thuis`, lastModified: lastResult },
+    { url: `${SITE_URL}/stand/uit`, lastModified: lastResult },
+    { url: `${SITE_URL}/stand/vorm`, lastModified: lastResult },
+    { url: `${SITE_URL}/restprogramma`, lastModified: lastResult },
+    { url: `${SITE_URL}/standcalculator`, lastModified: lastResult },
+    ...CHANNELS.map((c) => ({ url: `${SITE_URL}/zender/${c.slug}`, lastModified: now })),
+    { url: `${SITE_URL}/gids`, lastModified: lastResult },
+    ...GUIDES.map((g) => ({ url: `${SITE_URL}/gids/${g.slug}`, lastModified: lastResult })),
     { url: `${SITE_URL}/statistieken`, lastModified: lastResult },
     { url: `${SITE_URL}/vergelijk`, lastModified: lastResult },
     { url: `${SITE_URL}/eerste-divisie`, lastModified: now },

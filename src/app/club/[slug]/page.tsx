@@ -17,6 +17,7 @@ import { FaqItem, matchStructuredData, SITE_URL } from '@/lib/structured-data'
 import { formatDutchDate, formatTime } from '@/lib/utils'
 import { FormResult, Match, Club } from '@/data/types'
 import { clubTheme } from '@/lib/color'
+import { remainingSchedule } from '@/lib/table'
 import type { CSSProperties } from 'react'
 
 type Params = { params: Promise<{ slug: string }> }
@@ -126,6 +127,14 @@ export default async function ClubPage({ params }: Params) {
   const played = clubMatches.filter((m) => m.status === 'finished').reverse()
   const standing = data.standings.find((s) => s.club.id === club.id)
   const nextMatch = upcoming[0]
+  const rest = remainingSchedule(club.id, data.allMatches, data.standings)
+  const restRank =
+    rest.avgOpponentPosition === null
+      ? null
+      : data.clubs.filter((c) => {
+          const other = remainingSchedule(c.id, data.allMatches, data.standings).avgOpponentPosition
+          return other !== null && other < rest.avgOpponentPosition!
+        }).length + 1
   const theme = clubTheme(club.color)
   const rivals = data.clubs.filter((c) => c.id !== club.id)
   const topScorers = [...squad].filter((p) => p.stats.goals > 0).sort((a, b) => b.stats.goals - a.stats.goals).slice(0, 3)
@@ -223,6 +232,17 @@ export default async function ClubPage({ params }: Params) {
                 <MatchCard key={m.id} match={m} showDate />
               ))}
             </MatchGrid>
+          </section>
+        )}
+
+        {rest.avgOpponentPosition !== null && (
+          <section id="restprogramma" className="w-full pb-4">
+            <div className="rounded-xl bg-card p-4 text-sm text-muted shadow-sm ring-1 ring-border">
+              <strong className="text-foreground">Restprogramma:</strong> nog {rest.remaining.length} wedstrijd{rest.remaining.length === 1 ? '' : 'en'} in het bekende programma ({rest.home} thuis, {rest.away} uit).
+              De tegenstanders staan gemiddeld {rest.avgOpponentPosition.toFixed(1)}e
+              {restRank ? `: het ${restRank === 1 ? 'zwaarste' : `${restRank}e zwaarste`} restprogramma van de Eredivisie` : ''}.{' '}
+              <Link href="/restprogramma" className="font-semibold text-accent hover:underline">Vergelijk alle clubs →</Link>
+            </div>
           </section>
         )}
 
