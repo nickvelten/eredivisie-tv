@@ -11,6 +11,7 @@ import { ClubCalendarButton } from '@/components/CalendarButtons'
 import { SetFavoriteButton } from '@/components/SetFavoriteButton'
 import { Faq } from '@/components/Faq'
 import { PlayerTile } from '@/components/PlayerTile'
+import { TrophyIcon } from '@/components/Icons'
 import { FaqItem, matchStructuredData, SITE_URL } from '@/lib/structured-data'
 import { formatDutchDate, formatTime } from '@/lib/utils'
 import { FormResult, Match, Club } from '@/data/types'
@@ -297,7 +298,7 @@ export default async function ClubPage({ params }: Params) {
                       </td>
                       {row ? (
                         <>
-                          <td className="px-4 py-2.5 text-center font-extrabold text-foreground">{row.position}e{champion && ' 🏆'}</td>
+                          <td className="px-4 py-2.5 text-center font-extrabold text-foreground"><span className="inline-flex items-center gap-1">{row.position}e{champion && <TrophyIcon className="h-4 w-4 text-amber-500" />}</span></td>
                           <td className="px-4 py-2.5 text-center text-muted">{row.points}</td>
                           <td className="hidden px-4 py-2.5 text-center text-muted sm:table-cell">{row.won}-{row.drawn}-{row.lost}</td>
                           <td className="hidden px-4 py-2.5 text-center text-muted sm:table-cell">{row.goalsFor}-{row.goalsAgainst}</td>

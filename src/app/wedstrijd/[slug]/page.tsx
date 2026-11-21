@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { duelSlug, fetchEredivisieData, findMatch } from '@/lib/espn'
 import { fetchAllPlayers } from '@/lib/players'
+import { EventIcon, StadiumIcon } from '@/components/Icons'
 import { PageShell } from '@/components/PageShell'
 import { MatchCard, MatchGrid } from '@/components/MatchCard'
 import { BroadcastBadge } from '@/components/BroadcastBadge'
@@ -11,7 +12,7 @@ import { MatchCalendarButton } from '@/components/CalendarButtons'
 import { OddsBar, BettingNotice } from '@/components/OddsBar'
 import { matchStructuredData, SITE_URL } from '@/lib/structured-data'
 import { formatDutchDate, formatTime } from '@/lib/utils'
-import { Club, EredivisieData, FormResult, Match, MatchEvent, Player } from '@/data/types'
+import { Club, EredivisieData, FormResult, Match, Player } from '@/data/types'
 import { SHOW_ODDS } from '@/lib/betting'
 import { fetchMatchDetails } from '@/lib/match-details'
 import { MatchDetailsView } from '@/components/MatchDetailsView'
@@ -53,16 +54,6 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   }
 }
 
-function eventIcon(type: MatchEvent['type']): string {
-  switch (type) {
-    case 'goal': return '⚽'
-    case 'penalty': return '⚽ (pen.)'
-    case 'own-goal': return '⚽ (e.d.)'
-    case 'yellow': return '🟨'
-    case 'red': return '🟥'
-  }
-}
-
 function PlayerName({ name, slugs }: { name: string; slugs: Map<string, string> }) {
   const slug = slugs.get(name)
   return slug ? <Link href={`/speler/${slug}`} className="hover:text-accent hover:underline">{name}</Link> : <>{name}</>
@@ -80,11 +71,11 @@ function Timeline({ match, slugs }: { match: Match; slugs: Map<string, string> }
           return (
             <li key={i} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-2.5 text-sm">
               <span className="truncate text-right font-semibold text-foreground">
-                {isHome && <>{eventIcon(e.type)} <PlayerName name={e.player} slugs={slugs} /></>}
+                {isHome && <><EventIcon type={e.type} /> <PlayerName name={e.player} slugs={slugs} /></>}
               </span>
               <span className="w-12 rounded-md bg-foreground/5 py-0.5 text-center text-xs font-bold tabular-nums text-muted">{e.minute}</span>
               <span className="truncate font-semibold text-foreground">
-                {!isHome && <><PlayerName name={e.player} slugs={slugs} /> {eventIcon(e.type)}</>}
+                {!isHome && <><PlayerName name={e.player} slugs={slugs} /> <EventIcon type={e.type} /></>}
               </span>
             </li>
           )
@@ -257,8 +248,8 @@ export default async function MatchPage({ params }: Params) {
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 border-t border-border pt-5 text-sm text-muted">
             {match.venue && (
-              <Link href={`/stadion/${stadiumSlug(match.venue)}`} className="hover:text-accent hover:underline">
-                🏟️ {match.venue}{match.city ? `, ${match.city}` : ''}
+              <Link href={`/stadion/${stadiumSlug(match.venue)}`} className="inline-flex items-center gap-1.5 hover:text-accent hover:underline">
+                <StadiumIcon /> {match.venue}{match.city ? `, ${match.city}` : ''}
               </Link>
             )}
             <span className="flex items-center gap-2">

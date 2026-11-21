@@ -14,7 +14,7 @@ export type SidebarOptions = {
 function WidgetHeader({ title, href, linkLabel }: { title: string; href: string; linkLabel: string }) {
   return (
     <div className="flex items-center justify-between border-b border-border px-4 py-3">
-      <h2 className="text-sm font-extrabold text-foreground">{title}</h2>
+      <h3 className="text-sm font-extrabold text-foreground">{title}</h3>
       <Link href={href} className="text-xs font-semibold text-accent hover:underline">
         {linkLabel}
       </Link>

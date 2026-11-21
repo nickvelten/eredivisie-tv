@@ -17,7 +17,7 @@ export function NavLinks({ items }: { items: NavItem[] }) {
   }, [pathname])
 
   return (
-    <nav aria-label="Hoofdmenu" className="no-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto py-1.5">
+    <nav aria-label="Hoofdmenu" className="no-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto py-1.5 [mask-image:linear-gradient(to_right,black_85%,transparent)] lg:[mask-image:none]">
       {items.map((item) => {
         const active = item.href === '/' ? pathname === '/' : pathname === item.href || pathname.startsWith(`${item.href}/`)
         return (

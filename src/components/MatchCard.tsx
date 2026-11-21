@@ -23,7 +23,7 @@ function Team({ club, winner, large }: { club: Club; winner: boolean; large: boo
         className={large ? 'h-16 w-16' : 'h-12 w-12'}
       />
       <span
-        className={`w-full truncate text-xs leading-tight sm:text-[13px] ${
+        className={`line-clamp-2 w-full text-xs leading-tight sm:text-[13px] ${
           winner ? 'font-extrabold text-foreground' : 'font-semibold text-foreground/80'
         }`}
       >
@@ -62,6 +62,40 @@ function Centre({ match }: { match: Match }) {
       ) : (
         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-light">eindstand</span>
       )}
+    </div>
+  )
+}
+
+/** Phone layout: one row per match (time or score, both teams, channel), about a third of the card height. */
+function CompactRow({ match, homeWins, awayWins, hasOdds }: { match: Match; homeWins: boolean; awayWins: boolean; hasOdds: boolean }) {
+  const tv = match.broadcasts.find((b) => b.type === 'tv')
+  const played = match.status !== 'scheduled'
+  const teamRow = (club: Club, score: number | undefined, winner: boolean) => (
+    <span className="flex min-w-0 items-center gap-2">
+      <Image src={club.logo} alt="" width={20} height={20} className="h-5 w-5 shrink-0" />
+      <span className={`min-w-0 flex-1 truncate text-sm ${winner ? 'font-extrabold text-foreground' : 'font-semibold text-foreground/85'}`}>{club.shortName}</span>
+      {played && <span className="shrink-0 text-sm font-extrabold tabular-nums text-foreground">{score ?? 0}</span>}
+    </span>
+  )
+  return (
+    <div className="pointer-events-none relative z-10 flex items-center gap-3 px-3 py-2.5 sm:hidden">
+      <div className="flex w-12 shrink-0 flex-col items-center">
+        {match.status === 'scheduled' ? (
+          <span className="text-sm font-extrabold tabular-nums text-accent">{formatTime(match.date)}</span>
+        ) : match.status === 'live' ? (
+          <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">{match.clock ?? 'Live'}</span>
+        ) : (
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-light">Eind</span>
+        )}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-1 border-l border-border pl-3">
+        {teamRow(match.homeTeam, match.score?.home, homeWins)}
+        {teamRow(match.awayTeam, match.score?.away, awayWins)}
+      </div>
+      <div className="pointer-events-auto flex shrink-0 flex-col items-end gap-1.5">
+        {tv && <BroadcastBadge broadcast={tv} />}
+        {hasOdds && <OddsBar odds={match.odds!} />}
+      </div>
     </div>
   )
 }
@@ -111,8 +145,10 @@ export function MatchCard({
         aria-label={`${match.homeTeam.name} – ${match.awayTeam.name}`}
       />}
 
+      {!featured && <CompactRow match={match} homeWins={homeWins} awayWins={awayWins} hasOdds={hasOdds} />}
+      <div className={`${featured ? 'flex' : 'hidden sm:flex'} flex-1 flex-col`}>
       <div className="pointer-events-none relative z-10 flex items-center justify-between gap-3 px-4 pt-3 text-[11px] font-semibold uppercase tracking-wider text-muted-light">
-        <span className="truncate">
+        <span className="shrink-0 whitespace-nowrap">
           {featured && (
             <span className="mr-2 rounded bg-accent px-1.5 py-0.5 text-[10px] font-extrabold text-white">Topper</span>
           )}
@@ -121,7 +157,7 @@ export function MatchCard({
         {match.status === 'live' ? (
           <span className="shrink-0 text-accent">Live</span>
         ) : (
-          <span className="shrink-0 truncate">{match.status === 'finished' ? 'Gespeeld' : match.venue ?? ''}</span>
+          <span className="min-w-0 truncate text-right">{match.status === 'finished' ? 'Gespeeld' : match.venue ?? ''}</span>
         )}
       </div>
 
@@ -142,6 +178,7 @@ export function MatchCard({
         )}
       </div>
       {hasOdds && oddsStrip && <OddsBar odds={match.odds!} variant="strip" className="relative z-10 rounded-b-xl" />}
+      </div>
     </article>
   )
 }

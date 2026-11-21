@@ -106,7 +106,7 @@ function FavoriteToast({ club, onClose }: { club: Club; onClose: () => void }) {
     <div
       role="status"
       aria-live="polite"
-      className="fixed inset-x-4 bottom-4 z-[60] mx-auto flex max-w-md items-center gap-3 rounded-2xl p-3 pr-2 shadow-2xl ring-1 ring-black/10 motion-safe:animate-[toast-in_0.35s_cubic-bezier(0.2,0.8,0.2,1)]"
+      className="fixed inset-x-4 bottom-20 z-[60] sm:bottom-4 mx-auto flex max-w-md items-center gap-3 rounded-2xl p-3 pr-2 shadow-2xl ring-1 ring-black/10 motion-safe:animate-[toast-in_0.35s_cubic-bezier(0.2,0.8,0.2,1)]"
       style={{ background: `linear-gradient(135deg, ${theme.heroFrom}, ${theme.heroTo})`, color: theme.onHero }}
     >
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white p-1.5 shadow">

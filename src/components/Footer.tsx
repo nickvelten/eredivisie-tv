@@ -11,7 +11,7 @@ export function Footer({ clubs = [] }: { clubs?: Club[] }) {
       <div className="mx-auto max-w-7xl px-4 sm:px-5">
         {clubs.length > 0 && (
           <nav aria-label="Clubs" className="mb-10">
-            <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted">Eredivisie-clubs op TV</h2>
+            <p className="mb-4 text-xs font-bold uppercase tracking-widest text-muted">Eredivisie-clubs op TV</p>
             <ul className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 lg:grid-cols-6">
               {clubs.map((club) => (
                 <li key={club.id}>

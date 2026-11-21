@@ -50,7 +50,7 @@ export default async function StadionPage({ params }: Params) {
       <div className="flex items-center gap-4 pt-6">
         {club && <Image src={club.logo} alt={`Logo ${club.name}`} width={56} height={56} loading="eager" className="h-14 w-14 shrink-0" />}
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">🏟️ {stadium.name}</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{stadium.name}</h1>
           <p className="mt-1 text-sm text-muted">
             {stadium.city && <>{stadium.city} · </>}
             Thuishaven van {club ? <Link href={`/club/${club.slug}`} className="font-semibold text-accent hover:underline">{club.name}</Link> : 'een Eredivisie-club'}

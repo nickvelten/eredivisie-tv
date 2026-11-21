@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { EventIcon } from './Icons'
 import { Match } from '@/data/types'
 import { useLiveUpdates } from '@/lib/live-scores'
 
@@ -50,11 +51,10 @@ export function MatchdayTicker({ matches }: { matches: Match[] }) {
           <ul className="divide-y divide-border">
             {feed.map(({ match, event }, i) => {
               const club = event.teamId === match.homeTeam.id ? match.homeTeam : match.awayTeam
-              const icon = event.type === 'red' ? '🟥' : '⚽'
               return (
                 <li key={i} className="flex items-center gap-3 px-4 py-2 text-sm">
                   <span className="w-10 shrink-0 text-xs font-bold tabular-nums text-muted">{event.minute}</span>
-                  <span aria-hidden="true">{icon}</span>
+                  <EventIcon type={event.type} />
                   <span className="min-w-0 flex-1 truncate">
                     <span className="font-semibold text-foreground">{event.player}</span>
                     <span className="text-muted"> · {club.shortName}</span>

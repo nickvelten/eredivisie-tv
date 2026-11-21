@@ -47,7 +47,7 @@ export function ConsentBanner() {
     <div
       role="dialog"
       aria-label="Cookies"
-      className="fixed inset-x-4 bottom-4 z-[70] mx-auto max-w-lg rounded-2xl bg-card p-4 shadow-2xl ring-1 ring-border sm:p-5"
+      className="fixed inset-x-4 bottom-20 z-[70] sm:bottom-4 mx-auto max-w-lg rounded-2xl bg-card p-4 shadow-2xl ring-1 ring-border sm:p-5"
     >
       <p className="text-sm font-bold text-foreground">Cookies voor statistieken</p>
       <p className="mt-1 text-sm text-muted">
