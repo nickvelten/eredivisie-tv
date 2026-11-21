@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { fetchEredivisieData } from '@/lib/espn'
@@ -19,7 +19,15 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#1a1b23' },
+  ],
+}
+
 export const metadata: Metadata = {
+  appleWebApp: { capable: true, title: 'Eredivisie.tv', statusBarStyle: 'default' },
   metadataBase: new URL('https://eredivisie.tv'),
   title: 'Eredivisie op TV vandaag: wedstrijden, zenders & tijden | Eredivisie.tv',
   description:

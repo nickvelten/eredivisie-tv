@@ -9,6 +9,7 @@ import { MatchCard, MatchGrid } from '@/components/MatchCard'
 import { KickoffCountdown } from '@/components/KickoffCountdown'
 import { ClubCalendarButton } from '@/components/CalendarButtons'
 import { SetFavoriteButton } from '@/components/SetFavoriteButton'
+import { PushButton } from '@/components/PushButton'
 import { Faq } from '@/components/Faq'
 import { PlayerTile } from '@/components/PlayerTile'
 import { TrophyIcon } from '@/components/Icons'
@@ -196,6 +197,7 @@ export default async function ClubPage({ params }: Params) {
               <div className="flex flex-wrap gap-2">
                 <SetFavoriteButton clubId={club.id} />
                 <ClubCalendarButton slug={club.slug} clubName={club.name} onHero />
+                <PushButton club={club} onHero />
               </div>
             </div>
           </div>
