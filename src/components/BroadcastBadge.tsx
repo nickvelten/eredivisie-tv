@@ -1,4 +1,5 @@
 import { Broadcast } from '@/data/types'
+import { TvIcon } from './Icons'
 
 const styles = {
   tv: 'bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:text-emerald-400',
@@ -15,7 +16,7 @@ export function BroadcastBadge({ broadcast }: { broadcast: Broadcast }) {
         isTv ? 'text-xs font-bold sm:text-[13px]' : 'text-[11px] font-semibold'
       }`}
     >
-      {isTv && <span className="text-[10px]">📺</span>}
+      {isTv && <TvIcon className="h-3.5 w-3.5" />}
       {broadcast.name}
     </span>
   )

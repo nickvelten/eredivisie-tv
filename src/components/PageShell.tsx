@@ -3,6 +3,8 @@ import { EredivisieData } from '@/data/types'
 import { FavoriteClubProvider } from '@/lib/favorite-club'
 import { Header } from './Header'
 import { LiveBar } from './LiveBar'
+import { BottomNav } from './BottomNav'
+import { InstallPrompt } from './InstallPrompt'
 import { Footer } from './Footer'
 import { SiteNotices } from './SiteNotices'
 import { Sidebar, SidebarOptions } from './Sidebar'
@@ -51,6 +53,10 @@ export function PageShell({
         {sidebar && <Sidebar data={data} options={sidebarOptions} />}
       </div>
       <Footer clubs={data.clubs} />
+      {/* Room for the fixed tab bar on phones */}
+      <div className="h-[calc(3.5rem+env(safe-area-inset-bottom))] sm:hidden" />
+      <BottomNav />
+      <InstallPrompt />
     </FavoriteClubProvider>
     </LiveScoresProvider>
   )

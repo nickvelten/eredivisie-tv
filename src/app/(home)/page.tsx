@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PageShell } from '@/components/PageShell'
 import { FavoriteNextMatch } from '@/components/FavoriteNextMatch'
+import { favoriteCandidates } from '@/lib/favorite-candidates'
 import { TodayHighlight } from '@/components/TodayHighlight'
 import { RoundSchedule } from '@/components/RoundSchedule'
 import { Providers } from '@/components/Providers'
@@ -51,8 +52,8 @@ export default async function Home() {
           </p>
         </div>
         <MatchdayTicker matches={allMatches.filter((m) => isToday(m.date))} />
+        <FavoriteNextMatch matches={favoriteCandidates(allMatches)} standings={standings} />
         <TodayHighlight matches={allMatches} standings={standings} />
-        <FavoriteNextMatch matches={allMatches} />
         <RoundSchedule matchweeks={matchweeks} mode="upcoming" title="Programma" excludeIds={todayIds} />
         <RoundSchedule matchweeks={matchweeks} mode="results" title="Uitslagen" />
         <Providers />
