@@ -27,7 +27,7 @@ function matchEvent(match: Match): string[] {
   const tv = match.broadcasts.find((b) => b.type === 'tv')?.name ?? 'ESPN'
   const score = match.score ? ` (${match.score.home}-${match.score.away})` : ''
   const round = match.round ? `Speelronde ${match.round}` : 'Inhaalwedstrijd'
-  const description = `${round} · Kijk op ${tv} en ESPN.nl\nMeer info: ${matchUrl(match)}`
+  const description = `${round} · Kijk op ${tv}\nMeer info: ${matchUrl(match)}`
 
   return [
     'BEGIN:VEVENT',

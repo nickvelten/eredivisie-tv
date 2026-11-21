@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { OG_DEFAULT_IMAGES } from '@/lib/og'
 import { PageShell } from '@/components/PageShell'
-import { MatchSchedule } from '@/components/MatchSchedule'
+import { RoundSchedule } from '@/components/RoundSchedule'
 import { LeagueCalendarButtons } from '@/components/CalendarButtons'
 import { fetchEredivisieData } from '@/lib/espn'
 import { matchStructuredData, SITE_URL } from '@/lib/structured-data'
@@ -28,7 +28,7 @@ export default async function ProgrammaPage() {
       <div className="mt-4">
         <LeagueCalendarButtons />
       </div>
-      <MatchSchedule matchweeks={data.matchweeks} title="Per speelronde" />
+      <RoundSchedule matchweeks={data.matchweeks} mode="upcoming" title="Eerstvolgende speelronde" showIndex />
     </PageShell>
   )
 }

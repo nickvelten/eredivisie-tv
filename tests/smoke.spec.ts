@@ -11,7 +11,7 @@ const PAGES = [
   '/topscorers',
   '/statistieken',
   '/clubs',
-  '/club/ajax-amsterdam',
+  '/club/ajax',
   '/vergelijk',
   '/eerste-divisie',
   '/knvb-beker',
@@ -51,6 +51,13 @@ test('old numeric match URLs redirect to the slug', async ({ request }) => {
   const res = await request.get(`/wedstrijd/${id}`, { maxRedirects: 0 })
   expect(res.status()).toBe(308)
   expect(res.headers().location).toContain(match.href)
+})
+
+test('old club URLs redirect to the short slug', async ({ request }) => {
+  const res = await request.get('/club/ajax-amsterdam', { maxRedirects: 0 })
+  expect(res.status()).toBe(308)
+  expect(res.headers().location).toMatch(/\/club\/ajax$/)
+  expect((await request.get('/api/ics/club/psv-eindhoven')).status()).toBe(200)
 })
 
 test('unknown pages return 404 inside the site layout', async ({ page }) => {

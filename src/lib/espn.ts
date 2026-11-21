@@ -296,8 +296,7 @@ function pickClubColor(team: ESPNTeam): string | undefined {
 }
 
 // ESPN's display names carry English-style city suffixes ("Ajax Amsterdam",
-// "PSV Eindhoven"). Dutch fans use the plain club name. The slug keeps the
-// ESPN name so already indexed URLs stay valid.
+// "PSV Eindhoven"). Dutch fans use the plain club name.
 const CLUB_NAME_OVERRIDES: Record<string, string> = {
   '139': 'Ajax',
   '140': 'AZ',
@@ -306,13 +305,22 @@ const CLUB_NAME_OVERRIDES: Record<string, string> = {
   '148': 'PSV',
 }
 
+// Club URLs used the ESPN display name until November 2026
+// ("/club/ajax-amsterdam"). Old slug -> current slug, for permanent redirects.
+const LEGACY_CLUB_SLUGS = new Map<string, string>()
+
 function transformClub(team: ESPNTeam): Club {
   const name = CLUB_NAME_OVERRIDES[team.id] ?? team.displayName
+  const shortName = CLUB_NAME_OVERRIDES[team.id] ?? team.shortDisplayName ?? team.abbreviation
+  // Same short, readable slug as in match and duel URLs: "ajax", "psv", "go-ahead-eagles"
+  const slug = slugify(shortName)
+  const legacy = slugify(team.displayName)
+  if (legacy !== slug) LEGACY_CLUB_SLUGS.set(legacy, slug)
   return {
     id: team.id,
-    slug: slugify(team.displayName),
+    slug,
     name,
-    shortName: CLUB_NAME_OVERRIDES[team.id] ?? team.shortDisplayName ?? team.abbreviation,
+    shortName,
     logo: getTeamLogo(team),
     color: pickClubColor(team),
   }
@@ -370,7 +378,7 @@ function transformEvent(event: ESPNEvent): Match {
     events: status !== 'scheduled' ? transformDetails(comp.details) : undefined,
     broadcasts: [
       { name: 'ESPN', type: 'tv' },
-      { name: 'ESPN.nl', type: 'online', url: 'https://www.espn.nl' },
+      { name: 'ESPN Watch', type: 'online' },
     ],
     odds: status === 'scheduled' ? extractOdds(comp) : undefined,
   }
@@ -537,7 +545,7 @@ function assignChannels(matches: Match[], standings: StandingEntry[]): Match[] {
       ...m,
       broadcasts: [
         { name: channel, type: 'tv' as const },
-        { name: 'ESPN.nl', type: 'online' as const, url: 'https://www.espn.nl' },
+        { name: 'ESPN Watch', type: 'online' as const },
       ],
     }
   })
@@ -618,9 +626,11 @@ export async function fetchEredivisieData(): Promise<EredivisieData> {
 }
 
 // Convenience lookups for detail pages
+/** Finds a club by its slug, or by the longer slug used in older URLs and calendar feeds. */
 export async function findClubBySlug(slug: string): Promise<{ club: Club; data: EredivisieData } | null> {
   const data = await fetchEredivisieData()
-  const club = data.clubs.find((c) => c.slug === slug)
+  const current = LEGACY_CLUB_SLUGS.get(slug) ?? slug
+  const club = data.clubs.find((c) => c.slug === current)
   return club ? { club, data } : null
 }
 
@@ -801,7 +811,7 @@ export async function fetchCompetition(league: 'ned.2' | 'ned.cup'): Promise<Com
     ...m,
     broadcasts: [
       { name: 'ESPN', type: 'tv' as const },
-      { name: 'ESPN.nl', type: 'online' as const, url: 'https://www.espn.nl' },
+      { name: 'ESPN Watch', type: 'online' as const },
     ],
   }))
   for (const entry of standings) entry.form = calculateForm(entry.club.id, matches)

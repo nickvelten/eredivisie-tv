@@ -46,7 +46,7 @@ export function matchStructuredData(match: Match) {
     description:
       match.status === 'finished' && match.score
         ? `Eredivisie: ${name} eindigde in ${match.score.home}-${match.score.away}.`
-        : `Eredivisie: ${name}, live op ${tv?.name ?? 'ESPN'} en ESPN.nl.`,
+        : `Eredivisie: ${name}, live op ${tv?.name ?? 'ESPN'}.`,
     url: matchUrl(match),
     startDate: match.date,
     endDate,

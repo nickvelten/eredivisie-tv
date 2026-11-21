@@ -1,6 +1,6 @@
 export type Club = {
   id: string
-  slug: string // URL-safe, e.g. "feyenoord-rotterdam"
+  slug: string // URL-safe short name, e.g. "feyenoord", "go-ahead-eagles"
   name: string
   shortName: string // e.g. "Feyenoord"
   logo: string

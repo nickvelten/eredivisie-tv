@@ -1,58 +1,50 @@
 import { Provider } from './types'
 
+/**
+ * ESPN per provider. Prices change: update PRICES_CHECKED whenever they are
+ * checked against the providers' own pages.
+ *
+ * Season 2026/27: ESPN does not sell a standalone subscription in the
+ * Netherlands; you always watch through a TV provider. Online viewing is via
+ * the ESPN Watch app (or the provider's own app) with that subscription.
+ */
+export const PRICES_CHECKED = 'november 2026'
+
 export const providers: Provider[] = [
   {
-    name: 'Ziggo Sport',
+    name: 'Ziggo',
     logo: '/providers/ziggo.svg',
     brandColor: '#FF6600',
-    price: '€14,95/mnd',
-    description: 'ESPN-kanalen inbegrepen bij Ziggo Sport pakket',
-    url: 'https://www.ziggo.nl/televisie/ziggo-sport',
+    price: 'In elk tv-pakket',
+    description: 'ESPN 1 t/m 4 zitten sinds juli 2026 in elk digitaal tv-pakket. ESPN Premium (€9,95/mnd) voegt Ziggo GO, Ultra HD en ESPN Watch toe.',
+    url: 'https://www.ziggo.nl/televisie/extra-zenders-streamingdiensten/espn-premium',
     channels: ['ESPN 1', 'ESPN 2', 'ESPN 3', 'ESPN 4'],
   },
   {
     name: 'KPN',
     logo: '/providers/kpn.svg',
     brandColor: '#009900',
-    price: '€15,95/mnd',
-    description: 'ESPN ontvangen via KPN iTV',
-    url: 'https://www.kpn.com/televisie',
+    price: '€14,99/mnd',
+    description: 'ESPN Compleet via KPN TV+. Gratis als je het kiest als Combivoordeel.',
+    url: 'https://www.kpn.com/entertainment/espn',
     channels: ['ESPN 1', 'ESPN 2', 'ESPN 3', 'ESPN 4'],
   },
   {
     name: 'Odido',
     logo: '/providers/odido.svg',
     brandColor: '#5A00FF',
-    price: '€14,95/mnd',
-    description: 'ESPN via Odido TV pakket',
+    price: '€12,50/mnd',
+    description: 'ESPN Compleet, maandelijks opzegbaar, inclusief ESPN Watch. Ook een dagpas van €6.',
     url: 'https://www.odido.nl/tv',
-    channels: ['ESPN 1', 'ESPN 2', 'ESPN 3'],
+    channels: ['ESPN 1', 'ESPN 2', 'ESPN 3', 'ESPN 4'],
   },
   {
     name: 'Canal Digitaal',
     logo: '/providers/canal-digitaal.svg',
     brandColor: '#003DA5',
-    price: '€15,95/mnd',
-    description: 'ESPN via Canal Digitaal',
+    price: '€14,95/mnd',
+    description: 'ESPN Compleet via de schotel; ESPN 3 alleen in de app. Onderweg via de CANAL+ app.',
     url: 'https://www.canaldigitaal.nl/zenders',
-    channels: ['ESPN 1', 'ESPN 2', 'ESPN 3'],
-  },
-  {
-    name: 'ESPN.nl',
-    logo: '/providers/espn.svg',
-    brandColor: '#CC0000',
-    price: '€16,99/mnd',
-    description: 'Alle wedstrijden live streamen via ESPN.nl',
-    url: 'https://www.espn.nl',
-    channels: ['ESPN 1', 'ESPN 2', 'ESPN 3', 'ESPN 4', 'ESPN Extra'],
-  },
-  {
-    name: 'Ziggo GO',
-    logo: '/providers/ziggo-go.svg',
-    brandColor: '#FF6600',
-    price: 'Bij abonnement',
-    description: 'Gratis voor Ziggo klanten met Sport pakket',
-    url: 'https://www.ziggogo.tv',
     channels: ['ESPN 1', 'ESPN 2', 'ESPN 3', 'ESPN 4'],
   },
 ]

@@ -8,7 +8,7 @@ import { useFavoriteClub } from '@/lib/favorite-club'
 import { useLiveMatch } from '@/lib/live-scores'
 import { BroadcastBadge } from './BroadcastBadge'
 import { OddsBar } from './OddsBar'
-import { SHOW_ODDS, showBookmakerMark } from '@/lib/betting'
+import { SHOW_ODDS } from '@/lib/betting'
 
 
 function Team({ club, winner, large }: { club: Club; winner: boolean; large: boolean }) {
@@ -91,8 +91,8 @@ export function MatchCard({
   const awayWins = match.status === 'finished' && !!match.score && match.score.away > match.score.home
   const tvBroadcast = match.broadcasts.find((b) => b.type === 'tv')
   const hasOdds = !!match.odds && match.status === 'scheduled' && SHOW_ODDS
-  // Roughly one in three cards gets the wider Unibet band instead of the small pill
-  const oddsStrip = hasOdds && showBookmakerMark(match.id)
+  // One pattern everywhere: the small pill, and the wider Unibet band only on the topper
+  const oddsStrip = hasOdds && featured
   const contextLabel = showDate
     ? formatDutchDate(match.date)
     : match.round
@@ -138,7 +138,7 @@ export function MatchCard({
         ) : match.status === 'finished' ? (
           link ? <span className="pointer-events-none ml-auto text-[11px] font-semibold text-muted-light">Verloop →</span> : null
         ) : (
-          <span className="pointer-events-none ml-auto whitespace-nowrap text-[11px] font-medium text-muted-light">Live op ESPN.nl</span>
+          <span className="pointer-events-none ml-auto whitespace-nowrap text-[11px] font-medium text-muted-light">Ook in de ESPN Watch-app</span>
         )}
       </div>
       {hasOdds && oddsStrip && <OddsBar odds={match.odds!} variant="strip" className="relative z-10 rounded-b-xl" />}

@@ -47,12 +47,16 @@ export function TodayHighlight({ matches, standings }: { matches: Match[]; stand
     )
   }
 
-  // Live matches first, then the biggest fixture, then kickoff order
+  // Live matches first, then the topper, then the rest in kickoff order
+  const byKickoff = (a: Match, b: Match) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  const featuredId = [...displayMatches]
+    .filter((m) => m.status !== 'finished')
+    .sort((a, b) => importance(a, rank) - importance(b, rank) || byKickoff(a, b))[0]?.id
   const sorted = [...displayMatches].sort((a, b) => {
     if ((a.status === 'live') !== (b.status === 'live')) return a.status === 'live' ? -1 : 1
-    return importance(a, rank) - importance(b, rank) || new Date(a.date).getTime() - new Date(b.date).getTime()
+    if ((a.id === featuredId) !== (b.id === featuredId)) return a.id === featuredId ? -1 : 1
+    return byKickoff(a, b)
   })
-  const featuredId = sorted.find((m) => m.status !== 'finished')?.id
 
   const nextKickoff = displayMatches
     .filter((m) => m.status === 'scheduled')

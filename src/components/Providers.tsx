@@ -1,14 +1,15 @@
 import Image from 'next/image'
-import { providers } from '@/data/providers'
+import { PRICES_CHECKED, providers } from '@/data/providers'
 
 export function Providers() {
   return (
     <section id="providers" className="w-full py-10">
       <h2 className="mb-2 text-2xl font-extrabold text-foreground">Waar kijk je de Eredivisie?</h2>
       <p className="mb-8 text-sm text-muted">
-        ESPN is de officiële uitzender van de Eredivisie. Je kunt ESPN ontvangen via verschillende providers.
+        ESPN zendt alle Eredivisie-wedstrijden uit. Een los ESPN-abonnement bestaat niet: je kijkt via je tv-provider,
+        en online via de ESPN Watch-app of de app van je provider.
       </p>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         {providers.map((provider) => (
           <a
             key={provider.name}
@@ -32,12 +33,15 @@ export function Providers() {
               </div>
             </div>
             <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
-              <span className="text-xl font-extrabold text-accent">{provider.price}</span>
+              <span className="text-lg font-extrabold text-accent">{provider.price}</span>
               <span className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-white opacity-0 transition-opacity group-hover:opacity-100">Bekijk →</span>
             </div>
           </a>
         ))}
       </div>
+      <p className="mt-4 text-xs text-muted-light">
+        Prijzen gecontroleerd in {PRICES_CHECKED}. Acties en pakketprijzen wisselen; kijk voor de actuele prijs bij de provider.
+      </p>
     </section>
   )
 }

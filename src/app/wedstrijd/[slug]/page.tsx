@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const description =
     match.status === 'finished' && match.score
       ? `${name} eindigde ${formatDutchDate(match.date)} in ${match.score.home}-${match.score.away}. Bekijk de doelpuntenmakers, kaarten en het verloop van de Eredivisie-wedstrijd.`
-      : `Waar kijk je ${name}? ${when} live op ${tv} en ESPN.nl. Aftraptijd, zender, stadion, vorm en voorbeschouwing.`
+      : `Waar kijk je ${name}? ${when} live op ${tv}. Aftraptijd, zender, stadion, vorm en voorbeschouwing.`
   const url = `${SITE_URL}/wedstrijd/${match.slug}`
   return {
     title,
