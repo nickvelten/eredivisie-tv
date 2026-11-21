@@ -119,3 +119,14 @@ test('English match page renders', async ({ page }) => {
   expect(res?.status()).toBe(200)
   await expect(page.locator('h1')).toContainText(' vs ')
 })
+
+test.describe('English-speaking visitor', () => {
+  test.use({ locale: 'en-US' })
+  test('sees a dismissible hint to the English page', async ({ page }) => {
+    await page.goto('/stand')
+    const hint = page.getByRole('link', { name: 'View this page in English →' })
+    await expect(hint).toHaveAttribute('href', '/en/table')
+    await page.getByRole('button', { name: 'Dismiss' }).click()
+    await expect(hint).toHaveCount(0)
+  })
+})

@@ -7,7 +7,8 @@ export default defineConfig({
   fullyParallel: true,
   reporter: process.env.CI ? 'github' : 'list',
   retries: process.env.CI ? 1 : 0,
-  use: { baseURL: `http://localhost:${PORT}` },
+  // Dutch visitors by default; the English hint has its own test
+  use: { baseURL: `http://localhost:${PORT}`, locale: 'nl-NL', timezoneId: 'Europe/Amsterdam' },
   webServer: {
     command: `npm run start -- -p ${PORT}`,
     url: `http://localhost:${PORT}`,
