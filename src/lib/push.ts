@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { del, get, head, list, put } from '@vercel/blob'
-import webpush from 'web-push'
+import * as webpush from 'web-push'
 
 /**
  * Web push for "my club": one private Vercel Blob per subscription under
