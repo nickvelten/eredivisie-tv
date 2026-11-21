@@ -1,8 +1,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Club } from '@/data/types'
-import { CONTACT_EMAIL, FOR_SALE_MAILTO } from './SiteNotices'
+import { CONTACT_EMAIL } from './SiteNotices'
 import { NAV_ITEMS } from './Header'
+import { ConsentSettingsButton } from './ConsentBanner'
 
 export function Footer({ clubs = [] }: { clubs?: Club[] }) {
   return (
@@ -33,11 +34,20 @@ export function Footer({ clubs = [] }: { clubs?: Club[] }) {
             ))}
             <Link href="/widget-insluiten" className="transition-colors hover:text-foreground">Widget</Link>
             <Link href="/vergelijk" className="transition-colors hover:text-foreground">Vergelijken</Link>
-            <a href={FOR_SALE_MAILTO} className="text-accent transition-colors hover:text-foreground">Website te koop</a>
+            <Link href="/te-koop" className="transition-colors hover:text-foreground">Website te koop</Link>
           </nav>
           <div className="space-y-1.5 text-xs text-muted-light">
             <p>Niet officieel gelieerd aan de Eredivisie. Uitzendinformatie kan wijzigen; raadpleeg je provider.</p>
             <p>Vragen, ideeën of interesse in overname: <a href={`mailto:${CONTACT_EMAIL}`} className="underline transition-colors hover:text-foreground">{CONTACT_EMAIL}</a></p>
+            <p>
+              <Link href="/privacy" className="underline transition-colors hover:text-foreground">Privacy</Link>
+              {process.env.NEXT_PUBLIC_GA_ID && (
+                <>
+                  {' · '}
+                  <ConsentSettingsButton />
+                </>
+              )}
+            </p>
             <p>18+ | Wat kost gokken jou? Stop op tijd. <a href="https://www.loketkansspel.nl" target="_blank" rel="noopener noreferrer" className="underline transition-colors hover:text-foreground">loketkansspel.nl</a></p>
           </div>
         </div>

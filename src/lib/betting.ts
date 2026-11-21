@@ -18,10 +18,3 @@ export const SHOW_ODDS = process.env.NEXT_PUBLIC_SHOW_ODDS !== 'false'
 export const BETTING_REL = 'sponsored nofollow noopener noreferrer'
 
 export const BETTING_SLOGAN = '18+ | Wat kost gokken jou? Stop op tijd.'
-
-/** Shows the bookmaker's wordmark on roughly one in three odds bars, stable per match. */
-export function showBookmakerMark(matchId: string): boolean {
-  let hash = 0
-  for (const ch of matchId) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0
-  return hash % 3 === 0
-}

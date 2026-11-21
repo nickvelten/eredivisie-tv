@@ -6,6 +6,7 @@ import { FAVORITE_COOKIE } from '@/lib/favorite-cookie'
 import { clubTheme } from '@/lib/color'
 import { ScrollReset } from '@/components/ScrollReset'
 import { AnalyticsListener } from '@/components/AnalyticsListener'
+import { ConsentBanner, CONSENT_DEFAULT_SCRIPT } from '@/components/ConsentBanner'
 import './globals.css'
 
 const geistSans = Geist({
@@ -24,23 +25,20 @@ export const metadata: Metadata = {
   description:
     'Welke Eredivisie-wedstrijd is vandaag op TV en op welke zender? Alle aftraptijden, ESPN-zenders, uitslagen, de actuele stand en topscorers op één plek.',
   openGraph: {
-    title: 'Eredivisie.tv — Wedstrijden & TV Gids',
+    title: 'Eredivisie op TV vandaag: wedstrijden, zenders & tijden',
     description:
-      'Alle Eredivisie wedstrijden, uitslagen, stand en waar je ze kunt kijken op TV en online.',
+      'Welke Eredivisie-wedstrijd is vandaag op TV en op welke zender? Aftraptijden, uitslagen, stand en topscorers op één plek.',
     type: 'website',
     locale: 'nl_NL',
-    url: 'https://eredivisie.tv',
     siteName: 'Eredivisie.tv',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Eredivisie.tv — Wedstrijden & TV Gids',
-    description: 'Alle Eredivisie wedstrijden en waar je ze kunt kijken op TV en online.',
+    title: 'Eredivisie op TV vandaag: wedstrijden, zenders & tijden',
+    description: 'Welke Eredivisie-wedstrijd is vandaag op TV en op welke zender? Aftraptijden, uitslagen, stand en topscorers.',
   },
-  alternates: {
-    canonical: 'https://eredivisie.tv',
-    languages: { 'nl-NL': 'https://eredivisie.tv' },
-  },
+  // No canonical here: every indexable page sets its own, and an inherited
+  // one would point 404s and other pages at the homepage.
   robots: {
     index: true,
     follow: true,
@@ -83,12 +81,18 @@ export default async function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: clubThemeScript(themes) }} />
+        {process.env.NEXT_PUBLIC_GA_ID && <script dangerouslySetInnerHTML={{ __html: CONSENT_DEFAULT_SCRIPT }} />}
       </head>
       <body className="min-h-full flex flex-col bg-background">
         <ScrollReset />
         <AnalyticsListener />
         {children}
-        {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <>
+            <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+            <ConsentBanner />
+          </>
+        )}
       </body>
     </html>
   )

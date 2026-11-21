@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { duelSlug, fetchEredivisieData, fetchSeasonArchive, findClubBySlug, seasonOptions } from '@/lib/espn'
 import { playersByClub, POSITION_GROUPS } from '@/lib/players'
 import { PageShell } from '@/components/PageShell'
@@ -68,7 +68,7 @@ function clubFaq(club: Club, nextMatch: Match | undefined, upcoming: Match[], po
     items.push(
       {
         question: `Op welke zender is ${club.name} te zien?`,
-        answer: `De volgende wedstrijd van ${club.name}, ${where} tegen ${opp.name}, is live te zien op ${tv}. Online kijk je via ESPN.nl of de ESPN-app. ESPN zit in de pakketten van onder meer Ziggo, KPN en Canal Digitaal.`,
+        answer: `De volgende wedstrijd van ${club.name}, ${where} tegen ${opp.name}, is live te zien op ${tv}. Online kijk je in de ESPN Watch-app of de app van je provider. ESPN zit bij Ziggo in elk tv-pakket en is te krijgen via KPN, Odido en Canal Digitaal.`,
       },
       {
         question: `Hoe laat speelt ${club.name}?`,
@@ -78,7 +78,7 @@ function clubFaq(club: Club, nextMatch: Match | undefined, upcoming: Match[], po
   } else {
     items.push({
       question: `Op welke zender is ${club.name} te zien?`,
-      answer: `Alle Eredivisie-wedstrijden van ${club.name} zijn live te zien op ESPN (ESPN 1 t/m 4) en online via ESPN.nl.`,
+      answer: `Alle Eredivisie-wedstrijden van ${club.name} zijn live te zien op ESPN (ESPN 1 t/m 4) en online in de ESPN Watch-app.`,
     })
   }
   if (upcoming.length > 1) {
@@ -104,6 +104,7 @@ export default async function ClubPage({ params }: Params) {
   const result = await findClubBySlug(slug)
   if (!result) notFound()
   const { club, data } = result
+  if (club.slug !== slug) permanentRedirect(`/club/${club.slug}`)
   const squad = await playersByClub(club.id)
   // Final position in each archived season (null when the club played elsewhere)
   const history = await Promise.all(

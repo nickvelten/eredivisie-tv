@@ -49,11 +49,11 @@ export default async function OpTvVandaagPage() {
     {
       question: 'Kan ik de Eredivisie gratis kijken?',
       answer:
-        'Nee, live wedstrijden zijn alleen te zien met een ESPN-abonnement. Samenvattingen zijn na afloop gratis te zien bij NOS Studio Sport en op ESPN.nl.',
+        'Nee, live wedstrijden zijn alleen te zien met ESPN via een tv-provider. Bij Ziggo zit ESPN in elk tv-pakket; bij Odido kan het ook met een dagpas. Samenvattingen zijn na afloop gratis te zien bij NOS Studio Sport.',
     },
     {
       question: 'Hoe kijk ik de Eredivisie online?',
-      answer: 'Met een ESPN-abonnement kijk je via ESPN.nl of de ESPN-app op je telefoon, tablet, laptop of smart-tv.',
+      answer: 'Met ESPN via je provider kijk je in de ESPN Watch-app of de app van je provider (zoals Ziggo GO, KPN TV+ of de CANAL+ app) op je telefoon, tablet, laptop of smart-tv.',
     },
   ]
 

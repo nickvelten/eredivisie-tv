@@ -15,7 +15,7 @@ export function CompetitionView({ data, competition, intro, path }: { data: Ered
   const faq: FaqItem[] = [
     {
       question: `Op welke zender is de ${competition.name} te zien?`,
-      answer: `Wedstrijden uit de ${competition.name} worden uitgezonden door ESPN en zijn online te zien via ESPN.nl en de ESPN-app.`,
+      answer: `Wedstrijden uit de ${competition.name} worden uitgezonden door ESPN en zijn online te zien in de ESPN Watch-app of de app van je tv-provider.`,
     },
   ]
   if (next) {

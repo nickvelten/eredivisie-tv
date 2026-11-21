@@ -1,14 +1,27 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PageShell } from '@/components/PageShell'
 import { FavoriteNextMatch } from '@/components/FavoriteNextMatch'
 import { TodayHighlight } from '@/components/TodayHighlight'
-import { MatchSchedule } from '@/components/MatchSchedule'
-import { Results } from '@/components/Results'
+import { RoundSchedule } from '@/components/RoundSchedule'
 import { Providers } from '@/components/Providers'
 import { MatchdayTicker } from '@/components/MatchdayTicker'
 import { isToday } from '@/lib/utils'
 import { fetchEredivisieData } from '@/lib/espn'
-import { matchStructuredData, websiteStructuredData } from '@/lib/structured-data'
+import { matchStructuredData, SITE_URL, websiteStructuredData } from '@/lib/structured-data'
+
+export const metadata: Metadata = {
+  alternates: { canonical: SITE_URL },
+  openGraph: {
+    title: 'Eredivisie op TV vandaag: wedstrijden, zenders & tijden',
+    description:
+      'Welke Eredivisie-wedstrijd is vandaag op TV en op welke zender? Aftraptijden, uitslagen, stand en topscorers op één plek.',
+    url: SITE_URL,
+    type: 'website',
+    locale: 'nl_NL',
+    siteName: 'Eredivisie.tv',
+  },
+}
 
 // Cached for everyone and rebuilt at most every 5 minutes (live scores).
 export const revalidate = 300
@@ -16,6 +29,9 @@ export const revalidate = 300
 export default async function Home() {
   const data = await fetchEredivisieData()
   const { matchweeks, allMatches, standings } = data
+
+  // Today's matches are shown in TodayHighlight; the programme continues after them
+  const todayIds = allMatches.filter((m) => isToday(m.date)).map((m) => m.id)
 
   const upcomingMatches = allMatches
     .filter((m) => m.status === 'scheduled')
@@ -37,8 +53,8 @@ export default async function Home() {
         <MatchdayTicker matches={allMatches.filter((m) => isToday(m.date))} />
         <TodayHighlight matches={allMatches} standings={standings} />
         <FavoriteNextMatch matches={allMatches} />
-        <MatchSchedule matchweeks={matchweeks} />
-        <Results matchweeks={matchweeks} />
+        <RoundSchedule matchweeks={matchweeks} mode="upcoming" title="Programma" excludeIds={todayIds} />
+        <RoundSchedule matchweeks={matchweeks} mode="results" title="Uitslagen" />
         <Providers />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData()) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(upcomingMatches) }} />

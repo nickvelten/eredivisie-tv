@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { OG_DEFAULT_IMAGES } from '@/lib/og'
 import { PageShell } from '@/components/PageShell'
-import { Results } from '@/components/Results'
+import { RoundSchedule } from '@/components/RoundSchedule'
 import { fetchEredivisieData, seasonOptions } from '@/lib/espn'
 import { SeasonSwitch } from '@/components/SeasonSwitch'
 import { SITE_URL } from '@/lib/structured-data'
@@ -25,7 +25,7 @@ export default async function UitslagenPage() {
     <PageShell data={data} breadcrumbs={[{ label: 'Uitslagen', href: '/uitslagen' }]}>
       <SeasonSwitch options={options} active={options[0].year} basePath="/uitslagen" />
       <h1 className="pt-6 text-3xl font-extrabold tracking-tight text-foreground">Eredivisie uitslagen</h1>
-      <Results matchweeks={data.matchweeks} title="Per speelronde" />
+      <RoundSchedule matchweeks={data.matchweeks} mode="results" title="Laatste uitslagen" showIndex />
     </PageShell>
   )
 }

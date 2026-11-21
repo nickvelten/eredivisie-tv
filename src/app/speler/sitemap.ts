@@ -3,7 +3,9 @@ import { fetchEredivisieData } from '@/lib/espn'
 import { fetchAllPlayers } from '@/lib/players'
 import { SITE_URL } from '@/lib/structured-data'
 
-export const revalidate = 3600
+// Built per request (from cached ESPN data). A revalidate here was not
+// honoured: the sitemap stayed frozen at build time.
+export const dynamic = 'force-dynamic'
 
 /**
  * Player sitemap (/speler/sitemap.xml), separate so Search Console shows how

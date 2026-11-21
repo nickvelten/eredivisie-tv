@@ -3,8 +3,9 @@ import { duelSlug, fetchEredivisieData, fetchStadiums, seasonOptions } from '@/l
 import { SITE_URL } from '@/lib/structured-data'
 
 // Main sitemap; players have their own at /speler/sitemap.xml.
-// Rebuilt hourly so lastModified follows the latest results
-export const revalidate = 3600
+// Built per request (from cached ESPN data). A revalidate here was not
+// honoured: the sitemap stayed frozen at build time.
+export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [{ clubs, allMatches, matchweeks }, stadiums, seasons] = await Promise.all([fetchEredivisieData(), fetchStadiums(), seasonOptions()])

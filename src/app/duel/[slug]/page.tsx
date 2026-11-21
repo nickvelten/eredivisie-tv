@@ -67,8 +67,8 @@ export default async function DuelPage({ params }: Params) {
     {
       question: `Op welke zender is ${a.name} – ${b.name} te zien?`,
       answer: next
-        ? `${next.homeTeam.name} – ${next.awayTeam.name} is live te zien op ${tv} en online via ESPN.nl.`
-        : `Alle Eredivisie-wedstrijden, dus ook ${a.name} – ${b.name}, zijn live te zien op ESPN en via ESPN.nl.`,
+        ? `${next.homeTeam.name} – ${next.awayTeam.name} is live te zien op ${tv}.`
+        : `Alle Eredivisie-wedstrijden, dus ook ${a.name} – ${b.name}, zijn live te zien op ESPN.`,
     },
   ]
   if (played.length > 0) {
